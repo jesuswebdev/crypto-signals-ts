@@ -19,3 +19,5 @@ function nz(v: number, d: number): number {
 }
 
 export { nz };
+export { PAIRS } from './btc_pairs';
+
