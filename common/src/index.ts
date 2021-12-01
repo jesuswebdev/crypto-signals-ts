@@ -1,3 +1,5 @@
+import { ConsumeMessage } from 'amqplib';
+
 function invalidNumber(v: number) {
   return (
     typeof v === 'undefined' ||
@@ -14,10 +16,15 @@ function invalidNumber(v: number) {
  * @param v value
  * @param d value to use if `v` is not valid
  */
-function nz(v: number, d?: number): number {
+export function nz(v: number, d?: number): number {
   return invalidNumber(v) ? d ?? 0 : v;
 }
 
-export { nz };
-export { PAIRS } from './btc_pairs';
+export function encodeRabbitMqMessage<T>(data: T): Buffer {
+  return Buffer.from(JSON.stringify(data));
+}
+export function decodeRabbitMqMessage<T>(msg: ConsumeMessage): T {
+  return JSON.parse(msg.content.toString());
+}
 
+export { PAIRS } from './btc_pairs';
