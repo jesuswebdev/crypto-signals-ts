@@ -14,7 +14,7 @@ function invalidNumber(v: number) {
  * @param v value
  * @param d value to use if `v` is not valid
  */
-function nz(v: number, d: number): number {
+function nz(v: number, d?: number): number {
   return invalidNumber(v) ? d ?? 0 : v;
 }
 
