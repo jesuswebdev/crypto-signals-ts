@@ -2,7 +2,7 @@ import mongoose, { SchemaOptions } from 'mongoose';
 import { PAIRS, numberSchemaValidation } from '../index';
 import { CandleAttributes } from '../interfaces/Candle';
 
-export function createCandleSchema(options: SchemaOptions) {
+export function createCandleSchema(options: SchemaOptions = {}) {
   return new mongoose.Schema<CandleAttributes>(
     {
       id: {
