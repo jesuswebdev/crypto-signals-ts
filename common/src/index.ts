@@ -41,3 +41,13 @@ export function decodeRabbitMqMessage<T>(msg: ConsumeMessage): T {
 }
 
 export { PAIRS } from './btc_pairs';
+
+/**
+ * Interfaces
+ */
+export * from './interfaces/Candle';
+
+/**
+ * Models
+ */
+export * from './models/Candle';
