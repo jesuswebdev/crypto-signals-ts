@@ -15,9 +15,7 @@ interface OnMessageHandler<T> {
 export class MessageBroker<T> {
   uri: string;
   exchange: string;
-  channel: string;
-  topic: string;
-  queue: string;
+  queue: string | undefined;
   connection: amqplib.Connection | undefined;
   boundChannel: amqplib.Channel | undefined;
   onMessage: OnMessageHandler<T> | undefined;
@@ -25,9 +23,7 @@ export class MessageBroker<T> {
   constructor(options: MessageBrokerConstructorOptions) {
     this.uri = options.uri;
     this.exchange = options.exchange;
-    this.channel = options.channel ?? '';
-    this.topic = options.topic ?? '';
-    this.queue = options.queue ?? '';
+    this.queue = options.queue;
   }
 
   async initializeConnection() {
