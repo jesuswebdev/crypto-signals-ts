@@ -87,9 +87,14 @@ export class MessageBroker<T> {
 
     this.boundChannel.consume(q.queue, msg => {
       if (msg !== null) {
-        // eslint-disable-next-line
-        this.onMessage!(this.decodeMessage(msg));
-        this.boundChannel?.ack(msg);
+        try {
+          // eslint-disable-next-line
+          this.onMessage!(this.decodeMessage(msg));
+          this.boundChannel?.ack(msg);
+        } catch (error) {
+          console.error(error);
+          this.boundChannel?.nack(msg);
+        }
       }
     });
   }
