@@ -2,7 +2,8 @@ import ws, { WebSocket } from 'ws';
 import amqp, { Channel, Connection } from 'amqplib';
 import {
   encodeRabbitMqMessage,
-  CandleTickData
+  CandleTickData,
+  MessageBroker,
 } from '@jwd-crypto-signals/common';
 import { RABBITMQ_URI, RABBITMQ_CHANNEL } from './config/index';
 import { KlineUpdateEvent } from './interfaces';
@@ -22,6 +23,7 @@ class Observer {
   private terminating: boolean;
   private rabbitmqConnection: Connection | null;
   private rabbitmqChannel: Channel | null;
+  private broker: MessageBroker<CandleTickData> | undefined;
   constructor({ pairs, interval }: constructorOptions) {
     this.pairs = pairs;
     this.interval = interval;
@@ -38,6 +40,7 @@ class Observer {
 
   private onConnectionOpen() {
     console.log(`${new Date().toISOString()} | Connection open.`);
+
     if (this.client) {
       this.client.send(
         JSON.stringify({
@@ -62,6 +65,7 @@ class Observer {
 
   private onMessage(data: ws.RawData) {
     const message: KlineUpdateEvent = (JSON.parse(data.toString()) || {}).data;
+
     if (message?.e === 'kline') {
       const k = message.k;
       const candle: CandleTickData = {
@@ -96,6 +100,7 @@ class Observer {
       if (this.client) {
         this.client.removeAllListeners();
       }
+
       if (!this.terminating) {
         this.init();
       }
@@ -129,7 +134,9 @@ class Observer {
   async init() {
     console.log(`Observer started at ${new Date().toUTCString()}`);
 
-    await this.startRabbitMq();
+    this.broker = new MessageBroker<CandleTickData>({exchange:""});
+
+    // await this.startRabbitMq();
 
     this.client = new ws(
       `wss://stream.binance.com:9443/stream?streams=${this.pairs
@@ -145,6 +152,7 @@ class Observer {
 
     process.on('SIGINT', () => {
       const client = this.client;
+
       if (client && client.readyState === ws.OPEN) {
         this.terminating = true;
         client.send(

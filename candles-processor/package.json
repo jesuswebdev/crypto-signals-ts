@@ -1,32 +1,30 @@
 {
-  "name": "observer",
+  "name": "candles-processor",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "lint": "./node_modules/eslint/bin/eslint.js .",
     "start": "node ./lib/index",
     "dev": "ts-node ./src/index",
-    "docker:build": "tsc && docker build -t jwd-crypto-signals/observer -f ./.Dockerfile .",
-    "docker:push": "docker push jwd-crypto-signals/observer"
+    "docker:build": "tsc && docker build -t jwd-crypto-signals/candles-processor -f ./.Dockerfile .",
+    "docker:push": "docker push jwd-crypto-signals/candles-processor"
   },
-  "keywords": [],
   "author": "jesuswebdev",
   "license": "ISC",
   "devDependencies": {
     "@types/amqplib": "^0.8.2",
-    "@types/node": "^16.11.11",
-    "@types/ws": "^8.2.1",
+    "@types/hapi__hapi": "^20.0.9",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
+    "dotenv": "^10.0.0",
     "eslint": "^8.3.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   },
   "dependencies": {
+    "@hapi/hapi": "^20.2.1",
     "@jwd-crypto-signals/common": "^1.0.6",
     "amqplib": "^0.8.0",
-    "dotenv": "^10.0.0",
-    "ws": "^8.3.0"
+    "redis": "^4.0.0"
   }
 }

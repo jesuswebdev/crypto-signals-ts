@@ -6,9 +6,11 @@ try {
   if (!INTERVAL) {
     throw new Error('Candles interval is not defined');
   }
+
   if (!RABBITMQ_URI) {
     throw new Error('RabbitMQ URI is not defined');
   }
+
   if (!RABBITMQ_CHANNEL) {
     throw new Error('RabbitMQ channel is not defined');
   }
