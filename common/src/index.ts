@@ -43,6 +43,7 @@ export function decodeRabbitMqMessage<T>(msg: ConsumeMessage): T {
 
 export { PAIRS } from './btc_pairs';
 export * from './MessageBroker';
+export * from './types';
 
 /**
  * Interfaces
