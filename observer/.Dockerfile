@@ -1,6 +1,11 @@
-FROM node:alpine
-WORKDIR /usr/src/app
+FROM node:17-alpine as deps
+WORKDIR /usr/app
 COPY ./package*.json ./
-RUN npm install --only=production
-COPY ./lib ./lib
-CMD ["npm", "start"]
+RUN npm ci --only=production
+
+FROM node:17-alpine 
+WORKDIR /usr/app
+COPY --from=deps ./usr/app/ ./
+COPY ./lib/ ./lib/
+
+CMD [ "npm", "start" ]
