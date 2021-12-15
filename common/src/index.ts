@@ -36,11 +36,13 @@ export function numberSchemaValidation(n: number) {
 export function encodeRabbitMqMessage<T>(data: T): Buffer {
   return Buffer.from(JSON.stringify(data));
 }
+
 export function decodeRabbitMqMessage<T>(msg: ConsumeMessage): T {
   return JSON.parse(msg.content.toString());
 }
 
 export { PAIRS } from './btc_pairs';
+export * from './MessageBroker';
 
 /**
  * Interfaces

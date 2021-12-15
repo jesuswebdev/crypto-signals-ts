@@ -9,7 +9,7 @@ export function createCandleSchema(options: SchemaOptions = {}) {
         type: String,
         required: true,
         validate: (value: string) =>
-          value.match(new RegExp(`^binance_.+_[\\d]{1,2}(d|h|m)_\\d+$`))
+          value.match(new RegExp('^binance_.+_[\\d]{1,2}(d|h|m)_\\d+$'))
       },
       exchange: {
         type: String,
@@ -36,7 +36,7 @@ export function createCandleSchema(options: SchemaOptions = {}) {
         type: String,
         required: true,
         validate: (value: string) =>
-          value.match(new RegExp(`^[\\d]{1,2}(d|h|m)$`))
+          value.match(new RegExp('^[\\d]{1,2}(d|h|m)$'))
       },
       open_price: {
         type: Number,
