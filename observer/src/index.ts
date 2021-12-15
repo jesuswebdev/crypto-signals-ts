@@ -1,6 +1,6 @@
 import { PAIRS } from '@jwd-crypto-signals/common';
 import { Observer } from './Observer';
-import { INTERVAL, RABBITMQ_URI, RABBITMQ_CHANNEL } from './config/index';
+import { INTERVAL, RABBITMQ_URI } from './config/index';
 
 try {
   if (!INTERVAL) {
@@ -11,13 +11,10 @@ try {
     throw new Error('RabbitMQ URI is not defined');
   }
 
-  if (!RABBITMQ_CHANNEL) {
-    throw new Error('RabbitMQ channel is not defined');
-  }
-
   const observer = new Observer({
     pairs: PAIRS.map(p => p.symbol),
-    interval: INTERVAL
+    interval: INTERVAL,
+    messageBrokerUri: RABBITMQ_URI
   });
 
   observer.init();

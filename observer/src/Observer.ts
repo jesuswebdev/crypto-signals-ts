@@ -1,14 +1,14 @@
 import ws, { WebSocket } from 'ws';
-import amqp, { Channel, Connection } from 'amqplib';
 import {
-  encodeRabbitMqMessage,
   CandleTickData,
   MessageBroker,
+  EXCHANGE_TYPES,
+  CANDLE_EVENTS
 } from '@jwd-crypto-signals/common';
-import { RABBITMQ_URI, RABBITMQ_CHANNEL } from './config/index';
 import { KlineUpdateEvent } from './interfaces';
 
 interface constructorOptions {
+  messageBrokerUri: string;
   pairs: string[];
   interval: string;
 }
@@ -21,10 +21,10 @@ class Observer {
   private websocketId: number;
   private subscriptionParams: string[];
   private terminating: boolean;
-  private rabbitmqConnection: Connection | null;
-  private rabbitmqChannel: Channel | null;
+  private brokerUri: string;
   private broker: MessageBroker<CandleTickData> | undefined;
-  constructor({ pairs, interval }: constructorOptions) {
+  constructor({ pairs, interval, messageBrokerUri }: constructorOptions) {
+    this.brokerUri = messageBrokerUri;
     this.pairs = pairs;
     this.interval = interval;
     this.websocketId = process.pid;
@@ -34,8 +34,6 @@ class Observer {
     this.client = null;
     this.exchange = 'binance';
     this.terminating = false;
-    this.rabbitmqConnection = null;
-    this.rabbitmqChannel = null;
   }
 
   private onConnectionOpen() {
@@ -85,7 +83,7 @@ class Observer {
         exchange: this.exchange
       };
 
-      this.queueMessage(candle);
+      this.broker?.publish(CANDLE_EVENTS.CANDLE_TICK, candle);
     }
   }
 
@@ -96,7 +94,7 @@ class Observer {
 
   private onConnectionClose() {
     console.log(`${new Date().toISOString()} | Stream closed.`);
-    this.stopRabbitMq().then(() => {
+    this.broker?.close().then(() => {
       if (this.client) {
         this.client.removeAllListeners();
       }
@@ -107,36 +105,15 @@ class Observer {
     });
   }
 
-  private async startRabbitMq() {
-    const connection = await amqp.connect(RABBITMQ_URI);
-    const channel = await connection.createChannel();
-    await channel.assertQueue(RABBITMQ_CHANNEL);
-    this.rabbitmqChannel = channel;
-    this.rabbitmqConnection = connection;
-  }
-
-  private async stopRabbitMq() {
-    if (this.rabbitmqConnection) {
-      await this.rabbitmqConnection.close();
-    }
-  }
-
-  private queueMessage(msg: CandleTickData) {
-    if (this.rabbitmqChannel) {
-      this.rabbitmqChannel.sendToQueue(
-        RABBITMQ_CHANNEL,
-        encodeRabbitMqMessage(msg),
-        { timestamp: Date.now() }
-      );
-    }
-  }
-
   async init() {
     console.log(`Observer started at ${new Date().toUTCString()}`);
 
-    this.broker = new MessageBroker<CandleTickData>({exchange:""});
+    this.broker = new MessageBroker<CandleTickData>({
+      exchange: EXCHANGE_TYPES.CANDLE_EVENTS,
+      uri: this.brokerUri
+    });
 
-    // await this.startRabbitMq();
+    await this.broker.initializeConnection();
 
     this.client = new ws(
       `wss://stream.binance.com:9443/stream?streams=${this.pairs
@@ -166,6 +143,7 @@ class Observer {
               throw error;
             }
             client.terminate();
+            process.exit(1);
           }
         );
       }
