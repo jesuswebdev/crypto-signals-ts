@@ -1,4 +1,5 @@
 import { Connection } from 'mongoose';
+import { RedisClientType } from 'redis';
 export * from './candle';
 export * from './market';
 
@@ -7,4 +8,8 @@ export interface MessageBrokerPlugin {
 }
 export interface MongoosePlugin {
   connection: Connection;
+}
+
+export interface RedisPlugin {
+  client: RedisClientType;
 }
