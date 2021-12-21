@@ -71,7 +71,7 @@ export const getTimeDiff = function getTimeDiff(
  * @description Returns `true` if the given `value` is equal to `true`, `'true'`, or `1` and `false` otherwise.
  */
 export const getBooleanValue = function getBooleanValue(
-  value: string | boolean | number
+  value: string | boolean | number | null | undefined
 ) {
   const isString = typeof value === 'string';
   const isBoolean = typeof value === 'boolean';
