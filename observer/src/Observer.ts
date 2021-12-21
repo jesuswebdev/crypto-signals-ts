@@ -1,5 +1,4 @@
 import ws, { WebSocket } from 'ws';
-import { v4 as uuidv4 } from 'uuid';
 import {
   CandleTickData,
   MessageBroker,
@@ -66,7 +65,7 @@ class Observer {
     if (message?.e === 'kline') {
       const k = message.k;
       const candle: CandleTickData = {
-        id: uuidv4(),
+        id: `${message.s}_${k.i}_${k.t}`,
         symbol: message.s,
         event_time: message.E || Date.now(),
         open_time: k.t,
