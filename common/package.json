@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "version:patch": "npm version patch && git add ./package*.json && git commit -m 'bump common package version'",
+    "prebuild": "rimraf ./lib",
     "build": "tsc",
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "pub": "npm run version:patch && npm run build && npm publish",
@@ -34,6 +35,7 @@
   },
   "dependencies": {
     "amqplib": "^0.8.0",
-    "mongoose": "^6.0.14"
+    "mongoose": "^6.0.14",
+    "rimraf": "^3.0.2"
   }
 }
