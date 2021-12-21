@@ -1,4 +1,10 @@
 import { MILLISECONDS } from './constants';
+import { PAIRS } from './btc_pairs';
+export { PAIRS };
+export * from './MessageBroker';
+export * from './constants';
+export * from './interfaces';
+export * from './models';
 
 export const cloneObject = function cloneObject<T>(obj: T): T {
   return obj ? JSON.parse(JSON.stringify(obj)) : obj;
@@ -96,16 +102,40 @@ export const getBooleanValue = function getBooleanValue(
   return false;
 };
 
-export { PAIRS } from './btc_pairs';
-export * from './MessageBroker';
-export * from './constants';
+const toFixedPrecision = function toFixedPrecision(n: number, digits = 8) {
+  return +n.toPrecision(digits);
+};
+
+const getResult = function getResult(value: number, tick: number) {
+  return Math.trunc(toFixedPrecision(value / tick)) / Math.ceil(1 / tick);
+};
+
+const getSymbolPrecision = function getSymbolPrecision(
+  symbol: string,
+  type: 'priceTickSize' | 'stepSize'
+) {
+  return (PAIRS.find(p => p.symbol === symbol) || {})[type];
+};
 
 /**
- * Interfaces
+ * Returns the price fixed to the symbol's precision point
+ * @param {Number} value Price
+ * @param {String} symbol Symbol
  */
-export * from './interfaces';
+export const toSymbolPrecision = function toSymbolPrecision(
+  value: number,
+  symbol: string
+) {
+  const tick = getSymbolPrecision(symbol, 'priceTickSize') ?? 0;
 
-/**
- * Models
- */
-export * from './models';
+  return getResult(value, tick);
+};
+
+export const toSymbolStepPrecision = function toSymbolStepPrecision(
+  value: number,
+  symbol: string
+) {
+  const tick = getSymbolPrecision(symbol, 'stepSize') ?? 0;
+
+  return getResult(value, tick);
+};
