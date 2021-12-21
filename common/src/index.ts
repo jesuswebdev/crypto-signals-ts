@@ -1,5 +1,9 @@
 import { MILLISECONDS } from './constants';
 
+export const cloneObject = function cloneObject<T>(obj: T) {
+  return obj ? JSON.parse(JSON.stringify(obj)) : obj;
+};
+
 /**
  *
  * @param v value to check
