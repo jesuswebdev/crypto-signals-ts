@@ -1,3 +1,12 @@
+export enum DATABASE_MODELS {
+  ACCOUNT = 'Account',
+  CANDLE = 'Candle',
+  MARKET = 'Market',
+  ORDER = 'Order',
+  POSITION = 'Position',
+  SIGNAL = 'Signal'
+}
+
 export enum EXCHANGE_TYPES {
   CANDLE_EVENTS = 'CANDLE_EVENTS',
   POSITION_EVENTS = 'POSITION_EVENTS',
