@@ -1,6 +1,5 @@
 export interface CandleTickData {
   id: string;
-  exchange: string;
   symbol: string;
   event_time: number;
   open_time: number;

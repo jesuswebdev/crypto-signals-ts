@@ -5,16 +5,16 @@ export enum EXCHANGE_TYPES {
 }
 
 export enum CANDLE_EVENTS {
-  CANDLE_TICK = 'CANDLE_TICK',
-  CANDLE_PROCESSED = 'CANDLE_PROCESSED'
+  CANDLE_TICK = 'candle.tick',
+  CANDLE_PROCESSED = 'candle.processed'
 }
 
 export enum POSITION_EVENTS {
-  POSITION_CREATED = 'POSITION_CREATED',
-  POSITION_CLOSED = 'POSITION_CLOSED'
+  POSITION_CREATED = 'position.created',
+  POSITION_CLOSED = 'position.closed'
 }
 
 export enum SIGNAL_EVENTS {
-  SIGNAL_CREATED = 'SIGNAL_CREATED',
-  SIGNAL_CLOSED = 'SIGNAL_CLOSED'
+  SIGNAL_CREATED = 'signal.created',
+  SIGNAL_CLOSED = 'signal.closed'
 }

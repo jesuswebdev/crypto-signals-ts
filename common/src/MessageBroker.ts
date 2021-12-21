@@ -3,13 +3,11 @@ import amqplib, { ConsumeMessage } from 'amqplib';
 interface MessageBrokerConstructorOptions {
   uri: string;
   exchange: string;
-  channel?: string;
-  topic?: string;
   queue?: string;
 }
 
 interface OnMessageHandler<T> {
-  (msg: T): void;
+  (msg: T): Promise<void> | void;
 }
 
 export class MessageBroker<T> {
@@ -18,7 +16,6 @@ export class MessageBroker<T> {
   queue: string | undefined;
   connection: amqplib.Connection | undefined;
   boundChannel: amqplib.Channel | undefined;
-  onMessage: OnMessageHandler<T> | undefined;
 
   constructor(options: MessageBrokerConstructorOptions) {
     this.uri = options.uri;
@@ -28,24 +25,20 @@ export class MessageBroker<T> {
 
   async initializeConnection() {
     if (!this.uri) {
-      throw new Error('RabbitMQ URI is not defined');
+      throw new Error('Message Broker URI is not defined');
     }
 
     if (!this.exchange) {
-      throw new Error('RabbitMQ Exchange is not defined');
+      throw new Error('Message Broker Exchange is not defined');
     }
 
-    try {
-      this.connection = await amqplib.connect(this.uri);
-    } catch (error) {
-      console.error(error);
-
-      return;
-    }
+    this.connection = await amqplib.connect(this.uri);
     this.boundChannel = await this.connection.createChannel();
     await this.boundChannel.assertExchange(this.exchange, 'topic', {
       durable: true
     });
+
+    return this;
   }
 
   async close() {
@@ -72,24 +65,29 @@ export class MessageBroker<T> {
     );
   }
 
-  async listen(topic: string) {
+  async listen(topic: string, handler: OnMessageHandler<T>) {
     if (!this.boundChannel) {
       throw new Error('No channel bound to listen to messages');
     }
 
-    if (!this.onMessage) {
-      throw new Error('On Message handler is not defined');
+    if (!handler) {
+      throw new Error('onMessage handler is not defined');
     }
 
-    const q = await this.boundChannel.assertQueue(this.queue ?? 'queue');
+    const q = await this.boundChannel.assertQueue(
+      this.queue ?? `${topic}_queue`
+    );
 
     await this.boundChannel.bindQueue(q.queue, this.exchange, topic);
 
-    this.boundChannel.consume(q.queue, msg => {
+    this.boundChannel.consume(q.queue, async msg => {
       if (msg !== null) {
         try {
-          // eslint-disable-next-line
-          this.onMessage!(this.decodeMessage(msg));
+          if (handler instanceof Promise) {
+            await handler(this.decodeMessage(msg));
+          } else {
+            handler(this.decodeMessage(msg));
+          }
           this.boundChannel?.ack(msg);
         } catch (error) {
           console.error(error);

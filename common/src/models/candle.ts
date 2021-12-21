@@ -1,22 +1,13 @@
 import mongoose, { SchemaOptions } from 'mongoose';
 import { PAIRS, numberSchemaValidation } from '../index';
-import { CandleAttributes } from '../interfaces/Candle';
+import { CandleAttributes } from '../interfaces/candle';
 
-export function createCandleSchema(options: SchemaOptions = {}) {
-  return new mongoose.Schema<CandleAttributes>(
+export const createCandleSchema = function createCandleSchema(
+  options: SchemaOptions = {}
+) {
+  const schema = new mongoose.Schema<CandleAttributes>(
     {
-      id: {
-        type: String,
-        required: true,
-        validate: (value: string) =>
-          value.match(new RegExp('^binance_.+_[\\d]{1,2}(d|h|m)_\\d+$'))
-      },
-      exchange: {
-        type: String,
-        required: true,
-        enum: ['binance'],
-        default: 'binance'
-      },
+      id: { type: String, required: true, index: true },
       symbol: {
         type: String,
         required: true,
@@ -123,4 +114,10 @@ export function createCandleSchema(options: SchemaOptions = {}) {
     },
     { timestamps: true, ...options }
   );
-}
+
+  schema.index({ symbol: 1, open_time: 1 });
+  schema.index({ symbol: 1, interval: 1, open_time: 1 });
+  schema.index({ symbol: 1, interval: 1, open_time: -1 });
+
+  return schema;
+};

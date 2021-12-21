@@ -14,20 +14,17 @@ function getUndefinedValue(): unknown {
 describe('Index file functions tests', function () {
   describe('nz() tests', function () {
     it('returns zero when value is Infinity', function () {
-      const value = Infinity;
-      const result = nz(value);
+      const result = nz(Infinity);
       expect(result).to.eq(0);
     });
 
     it('returns zero when value is -Infinity', function () {
-      const value = -Infinity;
-      const result = nz(value);
+      const result = nz(-Infinity);
       expect(result).to.eq(0);
     });
 
     it('returns zero when value is NaN', function () {
-      const value = NaN;
-      const result = nz(value);
+      const result = nz(NaN);
       expect(result).to.eq(0);
     });
 
