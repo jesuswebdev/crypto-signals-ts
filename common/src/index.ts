@@ -65,6 +65,33 @@ export const getTimeDiff = function getTimeDiff(
   return ms * candles;
 };
 
+/**
+ *
+ * @param value
+ * @description Returns `true` if the given `value` is equal to `true`, `'true'`, or `1` and `false` otherwise.
+ */
+export const getBooleanValue = function getBooleanValue(
+  value: string | boolean | number
+) {
+  const isString = typeof value === 'string';
+  const isBoolean = typeof value === 'boolean';
+  const isNumber = typeof value === 'number';
+
+  if (isBoolean) {
+    return value;
+  }
+
+  if (isString) {
+    return value === 'true';
+  }
+
+  if (isNumber) {
+    return value === 1;
+  }
+
+  return false;
+};
+
 export { PAIRS } from './btc_pairs';
 export * from './MessageBroker';
 export * from './constants';
