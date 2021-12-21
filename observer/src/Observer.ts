@@ -1,4 +1,5 @@
 import ws, { WebSocket } from 'ws';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CandleTickData,
   MessageBroker,
@@ -17,7 +18,6 @@ class Observer {
   private pairs: string[];
   private interval: string;
   private client: WebSocket | null;
-  private exchange: string;
   private websocketId: number;
   private subscriptionParams: string[];
   private terminating: boolean;
@@ -32,7 +32,6 @@ class Observer {
       pair => `${pair.toLowerCase()}@kline_${interval}`
     );
     this.client = null;
-    this.exchange = 'binance';
     this.terminating = false;
   }
 
@@ -67,7 +66,7 @@ class Observer {
     if (message?.e === 'kline') {
       const k = message.k;
       const candle: CandleTickData = {
-        id: `${this.exchange}_${message.s}_${k.i}_${k.t}`,
+        id: uuidv4(),
         symbol: message.s,
         event_time: message.E || Date.now(),
         open_time: k.t,
@@ -79,8 +78,7 @@ class Observer {
         low_price: +k.l,
         base_asset_volume: +k.v,
         quote_asset_volume: +k.q,
-        date: new Date(k.t).toISOString(),
-        exchange: this.exchange
+        date: new Date(k.t).toISOString()
       };
 
       this.broker?.publish(CANDLE_EVENTS.CANDLE_TICK, candle);

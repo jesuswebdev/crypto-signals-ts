@@ -17,6 +17,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^16.11.11",
+    "@types/uuid": "^8.3.3",
     "@types/ws": "^8.2.1",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
@@ -27,6 +28,7 @@
   "dependencies": {
     "@jwd-crypto-signals/common": "^1.0.6",
     "dotenv": "^10.0.0",
+    "uuid": "^8.3.2",
     "ws": "^8.3.0"
   }
 }
