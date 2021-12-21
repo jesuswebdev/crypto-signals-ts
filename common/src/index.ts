@@ -1,10 +1,12 @@
+import { MILLISECONDS } from './constants';
+
 /**
  *
  * @param v value to check
  * @description Asserts wether a number is valid or not.
  * Invalid values include: `undefined`, `null`, `Infinity`, `-Infinity`, `NaN`.
  */
-export function numberIsValid(v: number) {
+export const numberIsValid = function numberIsValid(v: number) {
   return !(
     typeof v === 'undefined' ||
     v === null ||
@@ -12,7 +14,7 @@ export function numberIsValid(v: number) {
     v === -Infinity ||
     isNaN(v)
   );
-}
+};
 
 /**
  *
@@ -20,16 +22,48 @@ export function numberIsValid(v: number) {
  * @param v value
  * @param d value to use if `v` is not valid
  */
-export function nz(v: number, d?: number): number {
+export const nz = function nz(v: number, d?: number): number {
   return !numberIsValid(v) ? d ?? 0 : v;
-}
+};
 
-export function numberSchemaValidation(n: number) {
+export const numberSchemaValidation = function numberSchemaValidation(
+  n: number
+) {
   return (
     n === null ||
     (typeof n === 'number' && !isNaN(n) && n !== Infinity && n !== -Infinity)
   );
-}
+};
+
+/**
+ *
+ * @param candles Candle count
+ * @param interval Candle interval
+ * @returns The product of candles * interval (converted to milliseconds)
+ * @example given candles = 5, and interval = 1m. The result would be 5 * 60000.
+ */
+export const getTimeDiff = function getTimeDiff(
+  candles: number,
+  interval: string
+) {
+  let ms = 0;
+
+  if (interval === '1d') {
+    ms = MILLISECONDS.DAY;
+  } else if (interval === '4h') {
+    ms = MILLISECONDS.HOUR * 4;
+  } else if (interval === '1h') {
+    ms = MILLISECONDS.HOUR;
+  } else if (interval === '15m') {
+    ms = MILLISECONDS.MINUTE * 15;
+  } else if (interval === '5m') {
+    ms = MILLISECONDS.MINUTE * 5;
+  } else if (interval === '1m') {
+    ms = MILLISECONDS.MINUTE;
+  }
+
+  return ms * candles;
+};
 
 export { PAIRS } from './btc_pairs';
 export * from './MessageBroker';

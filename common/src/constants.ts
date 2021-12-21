@@ -27,3 +27,11 @@ export enum SIGNAL_EVENTS {
   SIGNAL_CREATED = 'signal.created',
   SIGNAL_CLOSED = 'signal.closed'
 }
+
+export enum MILLISECONDS {
+  SECOND = 1e3,
+  MINUTE = SECOND * 60,
+  HOUR = MINUTE * 60,
+  DAY = HOUR * 24,
+  WEEK = DAY * 7
+}
