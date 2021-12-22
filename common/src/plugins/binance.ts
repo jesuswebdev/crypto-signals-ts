@@ -15,6 +15,18 @@ const binancePlugin = {
   name: 'binance',
   version: '1.0.0',
   register(server: Server, options: PluginRegisterOptions) {
+    if (!options.binanceApiUrl) {
+      throw new Error('Binance API URL is not defined');
+    }
+
+    if (!options.binanceApiKey) {
+      throw new Error('Binance API Key is not defined');
+    }
+
+    if (!options.binanceApiSecret) {
+      throw new Error('Binance API Secret is not defined');
+    }
+
     const binance = axios.create({
       baseURL: options.binanceApiUrl,
       headers: { 'X-MBX-APIKEY': options.binanceApiKey }
