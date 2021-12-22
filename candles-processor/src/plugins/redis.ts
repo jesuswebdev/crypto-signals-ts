@@ -7,8 +7,11 @@ const redisPlugin = {
   version: '1.0.0',
   async register(server: Server) {
     const client = createClient({ url: REDIS_URI });
-    client.on('error', error => console.error('Redis Client Error', error));
+    client.on('error', (error: unknown) =>
+      server.log(['error', 'redis'], error as object)
+    );
     await client.connect();
+
     server.expose('client', client);
   }
 };

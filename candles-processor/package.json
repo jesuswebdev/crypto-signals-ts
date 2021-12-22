@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "lint": "./node_modules/eslint/bin/eslint.js .",
     "start": "node ./lib/index",
     "dev": "ts-node ./src/index",
     "docker:build": "tsc && docker build -t jwd-crypto-signals/candles-processor -f ./.Dockerfile .",
@@ -25,6 +26,7 @@
     "@hapi/hapi": "^20.2.1",
     "@jwd-crypto-signals/common": "^1.0.6",
     "amqplib": "^0.8.0",
-    "redis": "^4.0.0"
+    "redis": "^4.0.1",
+    "tulind": "^0.8.20"
   }
 }
