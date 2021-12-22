@@ -9,7 +9,9 @@ interface PluginRegisterOptions {
 }
 
 //  eslint-disable-next-line
-interface BinancePlugin extends AxiosInstance {}
+interface BinancePlugin {
+  client: AxiosInstance;
+}
 
 const binancePlugin = {
   name: 'binance',
@@ -74,7 +76,7 @@ const binancePlugin = {
       }
     );
 
-    server.expose('binance', binance);
+    server.expose('client', binance);
   }
 };
 
