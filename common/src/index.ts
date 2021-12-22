@@ -51,6 +51,20 @@ export const numberSchemaValidation = function numberSchemaValidation(
   );
 };
 
+export const truncateDecimals = function truncateDecimals(v: number, d = 4) {
+  return +v.toFixed(d);
+};
+
+/**
+ *
+ * @description Checks if the value is `undefined` and returns `null`, otherwise returns the value truncated.
+ */
+export const validateAndTruncate = function validateAndTruncate(
+  value: number | undefined
+) {
+  return typeof value === 'undefined' ? null : truncateDecimals(value);
+};
+
 /**
  *
  * @param candles Candle count
