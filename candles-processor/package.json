@@ -13,11 +13,9 @@
   "author": "jesuswebdev",
   "license": "ISC",
   "devDependencies": {
-    "@types/amqplib": "^0.8.2",
     "@types/hapi__hapi": "^20.0.9",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
-    "dotenv": "^10.0.0",
     "eslint": "^8.3.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
@@ -25,7 +23,7 @@
   "dependencies": {
     "@hapi/hapi": "^20.2.1",
     "@jwd-crypto-signals/common": "^1.0.6",
-    "amqplib": "^0.8.0",
+    "dotenv": "^10.0.0",
     "redis": "^4.0.1",
     "tulind": "^0.8.20"
   }
