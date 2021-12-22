@@ -17,7 +17,9 @@ export const cloneObject = function cloneObject<T>(obj: T): T {
  * @description Asserts wether a number is valid or not.
  * Invalid values include: `undefined`, `null`, `Infinity`, `-Infinity`, `NaN`.
  */
-export const numberIsValid = function numberIsValid(v: number) {
+export const numberIsValid = function numberIsValid(
+  v: number | null | undefined
+) {
   return !(
     typeof v === 'undefined' ||
     v === null ||
@@ -33,8 +35,11 @@ export const numberIsValid = function numberIsValid(v: number) {
  * @param v value
  * @param d value to use if `v` is not valid
  */
-export const nz = function nz(v: number, d?: number): number {
-  return !numberIsValid(v) ? d ?? 0 : v;
+export const nz = function nz(
+  v: number | null | undefined,
+  d?: number
+): number {
+  return !numberIsValid(v) ? d ?? 0 : (v as number);
 };
 
 export const numberSchemaValidation = function numberSchemaValidation(
