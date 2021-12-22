@@ -5,6 +5,7 @@ export * from './MessageBroker';
 export * from './constants';
 export * from './interfaces';
 export * from './models';
+export * from './plugins';
 
 export const cloneObject = function cloneObject<T>(obj: T): T {
   return obj ? JSON.parse(JSON.stringify(obj)) : obj;
