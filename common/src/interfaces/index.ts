@@ -1,17 +1,16 @@
 import { Connection } from 'mongoose';
 import { RedisClientType } from 'redis';
-import amqplib from 'amqplib';
+import { Options } from 'amqplib';
 export * from './candle';
 export * from './market';
 export * from './signal';
 export * from './position';
 
+//eslint-disable-next-line
+interface PublishOptions extends Options.Publish {}
+
 export interface MessageBrokerPlugin {
-  publish: <T>(
-    topic: string,
-    data: T,
-    options?: amqplib.Options.Publish
-  ) => void;
+  publish: <T>(topic: string, data: T, options?: PublishOptions) => void;
 }
 export interface MongoosePlugin {
   connection: Connection;
