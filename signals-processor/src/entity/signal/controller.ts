@@ -22,6 +22,9 @@ import { applyStrategy } from '../../strategy';
 import { getPlainCandle } from '../../utils';
 import { createPosition } from '../position/controller';
 
+/**
+ * @description Processes existing open signals, or creates new ones.
+ */
 export const processSignals = async function processSignals(
   server: Server,
   { symbol, interval }: CandleTickData
