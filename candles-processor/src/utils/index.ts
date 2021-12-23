@@ -280,7 +280,7 @@ export const processCandleTick = async function processCandleTick(
       );
 
       await marketModel.updateOne(
-        { $and: [{ symbol: candle.symbol }] },
+        { symbol: candle.symbol },
         { $set: { last_price: candle.close_price } },
         { upsert: true }
       );
