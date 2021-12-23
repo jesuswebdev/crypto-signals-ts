@@ -1,6 +1,7 @@
 import { Server } from '@hapi/hapi';
 import mongoose from 'mongoose';
 import { createCandleModel } from '../entity/candle/model';
+import { createMarketModel } from '../entity/market/model';
 import { createPositionModel } from '../entity/position/model';
 import { createSignalModel } from '../entity/signal/model';
 
@@ -21,6 +22,7 @@ const mongoosePlugin = {
     createCandleModel(connection);
     createPositionModel(connection);
     createSignalModel(connection);
+    createMarketModel(connection);
     server.expose('connection', connection);
   }
 };
