@@ -1,4 +1,5 @@
 import amqplib, { ConsumeMessage } from 'amqplib';
+import { MILLISECONDS } from '.';
 
 interface MessageBrokerConstructorOptions {
   uri: string;
@@ -61,7 +62,12 @@ export class MessageBroker<T> {
       this.exchange,
       topic,
       this.encodeMessage(message),
-      { timestamp: Date.now(), persistent: true, ...options }
+      {
+        timestamp: Date.now(),
+        expiration: 15 * MILLISECONDS.MINUTE,
+        persistent: true,
+        ...options
+      }
     );
   }
 
