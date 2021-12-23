@@ -2,16 +2,32 @@
   "name": "positions-processor",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "start": "node ./lib/index",
+    "dev": "ts-node ./src/index",
+    "docker:build": "npm run build && docker build -t jwd-crypto-signals/positions-processor -f ./Dockerfile .",
+    "docker:run": "docker run --name crypto-signals-positions-processor -d --env-file=./.env jwd-crypto-signals/positions-processor",
+    "docker:rm": "docker stop crypto-signals-positions-processor && docker rm crypto-signals-positions-processor",
+    "docker:push": "docker push jwd-crypto-signals/positions-processor"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/hapi__hapi": "^20.0.10",
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
     "eslint": "^8.5.0"
+  },
+  "dependencies": {
+    "@hapi/hapi": "^20.2.1",
+    "@jwd-crypto-signals/common": "^1.0.29",
+    "dotenv": "^10.0.0",
+    "mongoose": "^6.1.3",
+    "rimraf": "^3.0.2"
   }
 }
