@@ -7,7 +7,7 @@ interface MessageBrokerConstructorOptions {
 }
 
 interface OnMessageHandler<T> {
-  (msg: T): Promise<void> | void;
+  (msg: T, rawMsg: ConsumeMessage): Promise<void> | void;
 }
 
 export class MessageBroker<T> {
@@ -53,7 +53,7 @@ export class MessageBroker<T> {
     return JSON.parse(msg.content.toString());
   }
 
-  publish(topic: string, message: T) {
+  publish(topic: string, message: T, options?: amqplib.Options.Publish) {
     if (!this.boundChannel) {
       throw new Error('No channel bound to publish message');
     }
@@ -61,7 +61,7 @@ export class MessageBroker<T> {
       this.exchange,
       topic,
       this.encodeMessage(message),
-      { timestamp: Date.now(), persistent: true }
+      { timestamp: Date.now(), persistent: true, ...options }
     );
   }
 
@@ -84,9 +84,9 @@ export class MessageBroker<T> {
       if (msg !== null) {
         try {
           if (handler instanceof Promise) {
-            await handler(this.decodeMessage(msg));
+            await handler(this.decodeMessage(msg), msg);
           } else {
-            handler(this.decodeMessage(msg));
+            handler(this.decodeMessage(msg), msg);
           }
           this.boundChannel?.ack(msg);
         } catch (error) {
