@@ -159,3 +159,10 @@ export const toSymbolStepPrecision = function toSymbolStepPrecision(
 
   return getResult(value, tick);
 };
+
+export const getChange = function getChange(
+  currentValue: number,
+  fromValue: number
+): number {
+  return +((currentValue * 100) / fromValue - 100).toFixed(2);
+};

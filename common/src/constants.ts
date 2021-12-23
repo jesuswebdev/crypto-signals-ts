@@ -20,7 +20,8 @@ export enum CANDLE_EVENTS {
 
 export enum POSITION_EVENTS {
   POSITION_CREATED = 'position.created',
-  POSITION_CLOSED = 'position.closed'
+  POSITION_CLOSED = 'position.closed',
+  POSITION_PROCESSED = 'position.processed'
 }
 
 export enum SIGNAL_EVENTS {
@@ -34,4 +35,15 @@ export enum MILLISECONDS {
   HOUR = MINUTE * 60,
   DAY = HOUR * 24,
   WEEK = DAY * 7
+}
+
+export enum POSITION_STATUS {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN'
+}
+
+export enum POSITION_SELL_TRIGGER {
+  STOP_LOSS = 'STOP_LOSS',
+  TAKE_PROFIT = 'TAKE_PROFIT',
+  TRAILING_STOP_LOSS = 'TRAILING_STOP_LOSS'
 }
