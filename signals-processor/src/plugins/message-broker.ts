@@ -18,7 +18,8 @@ const messageBrokerPlugin = {
     try {
       const positionsBroker = new MessageBroker<CandleTickData>({
         exchange: EXCHANGE_TYPES.POSITION_EVENTS,
-        uri: options.uri
+        uri: options.uri,
+        queue: 'signals-processor'
       });
 
       await positionsBroker.initializeConnection();
