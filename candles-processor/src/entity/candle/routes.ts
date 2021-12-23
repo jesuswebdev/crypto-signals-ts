@@ -99,8 +99,6 @@ const candlesRoutes = {
 
           return h.response();
         } catch (error) {
-          console.error(error);
-
           return Boom.internal();
         }
       },

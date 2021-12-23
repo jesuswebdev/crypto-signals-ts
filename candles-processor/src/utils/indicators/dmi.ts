@@ -71,13 +71,8 @@ export const getDMI: tulindFunction<{
   plus_di: number | null;
   minus_di: number | null;
 }> = async function getDMI(data, { periods = 14, parseFn }) {
-  try {
-    const { adx } = await getADX(data, { periods, parseFn });
-    const di = await getDI(data, { periods, parseFn });
+  const { adx } = await getADX(data, { periods, parseFn });
+  const di = await getDI(data, { periods, parseFn });
 
-    return { adx, ...di };
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  return { adx, ...di };
 };
