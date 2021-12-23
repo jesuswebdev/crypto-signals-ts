@@ -3,7 +3,7 @@ import joi from 'joi';
 import dotenv from 'dotenv';
 dotenv.config();
 
-validateObjectSchema(
+const env = validateObjectSchema(
   process.env,
   joi.object({
     INTERVAL: joi
@@ -15,7 +15,5 @@ validateObjectSchema(
   })
 );
 
-export const INTERVAL = process.env.INTERVAL ?? '';
-export const MESSAGE_BROKER_URI =
-  `amqp://${process.env.RABBITMQ_SERVICE_HOST}:${process.env.RABBITMQ_SERVICE_PORT}` ??
-  '';
+export const INTERVAL = env.INTERVAL ?? '';
+export const MESSAGE_BROKER_URI = `amqp://${env.RABBITMQ_SERVICE_HOST}:${env.RABBITMQ_SERVICE_PORT}`;

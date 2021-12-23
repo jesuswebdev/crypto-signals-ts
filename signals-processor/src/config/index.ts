@@ -3,7 +3,7 @@ import Joi from 'joi';
 import dotenv from 'dotenv';
 dotenv.config();
 
-validateObjectSchema(
+const env = validateObjectSchema(
   process.env,
   Joi.object({
     MONGODB_SERVICE_HOST: Joi.string().hostname().required(),
@@ -20,17 +20,10 @@ validateObjectSchema(
   })
 );
 
-export const MONGODB_URI =
-  `mongodb://${process.env.MONGODB_SERVICE_HOST}:${process.env.MONGODB_SERVICE_PORT}/${process.env.MONGODB_DATABASE}` ??
-  '';
-export const MESSAGE_BROKER_URI =
-  `amqp://${process.env.RABBITMQ_SERVICE_HOST}:${process.env.RABBITMQ_SERVICE_PORT}` ??
-  '';
-
+export const MONGODB_URI = `mongodb://${env.MONGODB_SERVICE_HOST}:${env.MONGODB_SERVICE_PORT}/${env.MONGODB_DATABASE}`;
+export const MESSAGE_BROKER_URI = `amqp://${env.RABBITMQ_SERVICE_HOST}:${env.RABBITMQ_SERVICE_PORT}`;
 export const SIGNAL_HOURS_LOOKUP =
-  +(process.env.SIGNAL_HOURS_LOOKUP ?? '') * MILLISECONDS.HOUR;
-
+  +(env.SIGNAL_HOURS_LOOKUP ?? '') * MILLISECONDS.HOUR;
 export const LAST_POSITION_HOURS_LOOKUP =
-  +(process.env.LAST_POSITION_HOURS_LOOKUP ?? '') * MILLISECONDS.HOUR;
-
-export const POSITION_TAKE_PROFIT = +(process.env.POSITION_TAKE_PROFIT ?? '');
+  +(env.LAST_POSITION_HOURS_LOOKUP ?? '') * MILLISECONDS.HOUR;
+export const POSITION_TAKE_PROFIT = +(env.POSITION_TAKE_PROFIT ?? '');
