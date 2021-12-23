@@ -1,6 +1,6 @@
 import { Connection } from 'mongoose';
 import { RedisClientType } from 'redis';
-import { Options } from 'amqplib';
+import { Options } from 'amqplib/properties';
 export * from './candle';
 export * from './market';
 export * from './signal';
