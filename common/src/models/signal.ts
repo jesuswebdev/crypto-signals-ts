@@ -27,7 +27,11 @@ export const createSignalSchema = function createSignalSchema(
       close_date: { type: Date },
       drop_price: { type: Number, validate: numberSchemaValidation },
       trigger: { type: String, required: true },
-      status: POSITION_STATUS,
+      status: {
+        type: String,
+        enum: POSITION_STATUS,
+        default: POSITION_STATUS.OPEN
+      },
       trailing_stop_buy: {
         type: Number,
         required: true,
