@@ -6,7 +6,7 @@ import {
 
 export const applyStrategy = function applyStrategy(
   candles: LeanCandleDocument[],
-  last_open_position: LeanPositionDocument
+  last_open_position: LeanPositionDocument | undefined
 ) {
   const [previousCandle, currentCandle] = candles.slice(-2);
 
@@ -18,12 +18,12 @@ export const applyStrategy = function applyStrategy(
 
   const volatile = currentCandle.ch_atr > currentCandle.ch_atr_ema;
 
-  const highest_price = Math.max(
-    0,
-    ...[last_open_position?.buy_price, last_open_position?.sell_price].filter(
-      notFalsy => notFalsy
-    )
-  );
+  const position_prices = [
+    last_open_position?.buy_price ?? 0,
+    last_open_position?.sell_price ?? 0
+  ].filter(notFalsy => notFalsy);
+
+  const highest_price = Math.max(0, ...position_prices);
 
   if (
     !!highest_price &&
@@ -42,10 +42,10 @@ export const applyStrategy = function applyStrategy(
     currentCandle.plus_di > currentCandle.minus_di;
 
   const above_ema = currentCandle.close_price > currentCandle.ema_50;
-  const upward_slope = !candles.slice(-3).some(c => c.ema_50_slope === -1);
-  const green_candles = !candles
+  const upward_slope = candles.slice(-3).every(c => c.ema_50_slope === 1);
+  const green_candles = candles
     .slice(-2)
-    .some(c => c.close_price < c.open_price);
+    .every(c => c.close_price > c.open_price);
 
   const trending =
     previousCandle.trend === 1 &&
