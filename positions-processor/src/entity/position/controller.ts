@@ -59,7 +59,9 @@ export const processOpenPositions = async function processOpenPositions(
             { new: true }
           );
 
-          publish(POSITION_EVENTS.POSITION_CLOSED, closedPosition);
+          publish(POSITION_EVENTS.POSITION_CLOSED, closedPosition, {
+            expiration: undefined
+          });
         }
       } catch (error) {
         await positionModel.findByIdAndUpdate(position._id, {
