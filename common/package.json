@@ -22,6 +22,7 @@
     "@types/amqplib": "^0.8.2",
     "@types/chai": "^4.2.22",
     "@types/hapi__hapi": "^20.0.10",
+    "@types/joi": "^17.2.3",
     "@types/mocha": "^9.0.0",
     "@types/mongoose": "^5.11.97",
     "@types/redis": "^4.0.11",
