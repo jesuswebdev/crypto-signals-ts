@@ -181,5 +181,9 @@ export const validateObjectSchema = function validateObjectSchema<T>(
     throw new Error(error.stack);
   }
 
+  if (!value) {
+    throw new Error('Object could not be validated');
+  }
+
   return value;
 };
