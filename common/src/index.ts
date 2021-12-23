@@ -173,7 +173,10 @@ export const validateObjectSchema = function validateObjectSchema(
   obj: Record<string, any>,
   schema: Schema
 ) {
-  const result = schema.label('Object to validate').validate(obj);
+  const result = schema
+    .label('Object to validate')
+    .options({ stripUnknown: true })
+    .validate(obj);
 
   if (result.error) {
     throw new Error(result.error.stack);
