@@ -1,5 +1,5 @@
 import amqplib, { ConsumeMessage } from 'amqplib';
-import { MILLISECONDS } from '.';
+import { MILLISECONDS, PublishOptions } from '.';
 
 interface MessageBrokerConstructorOptions {
   uri: string;
@@ -54,7 +54,7 @@ export class MessageBroker<T> {
     return JSON.parse(msg.content.toString());
   }
 
-  publish(topic: string, message: T, options?: amqplib.Options.Publish) {
+  publish(topic: string, message: T, options?: PublishOptions) {
     if (!this.boundChannel) {
       throw new Error('No channel bound to publish message');
     }
