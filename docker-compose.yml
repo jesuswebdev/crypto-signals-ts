@@ -1,0 +1,55 @@
+version: "3"
+services:
+  mongodb:
+    restart: unless-stopped
+    image: mongo:latest
+    volumes:
+      - db_data:/data/db
+  redis:
+    restart: unless-stopped
+    image: redis:latest
+  rabbitmq:
+    restart: unless-stopped
+    image: rabbitmq:latest
+  observer:
+    restart: unless-stopped
+    build:
+      context: ./observer/
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./observer/.env
+    depends_on: 
+      - rabbitmq
+  candles-processor:
+    restart: unless-stopped
+    build:
+      context: ./candles-processor/
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./candles-processor/.env
+    depends_on: 
+      - mongodb
+      - redis
+      - rabbitmq
+  positions-processor:
+    restart: unless-stopped
+    build:
+      context: ./positions-processor/
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./positions-processor/.env
+    depends_on: 
+      - mongodb
+      - rabbitmq
+  signals-processor:
+    restart: unless-stopped
+    build:
+      context: ./signals-processor/
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./signals-processor/.env
+    depends_on: 
+      - mongodb
+      - rabbitmq
+volumes:
+  db_data:
