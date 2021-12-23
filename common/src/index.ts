@@ -1,4 +1,4 @@
-import { Schema } from 'joi';
+import { ObjectSchema } from 'joi';
 import { MILLISECONDS } from './constants';
 import { PAIRS } from './btc_pairs';
 export { PAIRS };
@@ -168,17 +168,18 @@ export const getChange = function getChange(
   return +((currentValue * 100) / fromValue - 100).toFixed(2);
 };
 
-export const validateObjectSchema = function validateObjectSchema(
-  //eslint-disable-next-line
-  obj: Record<string, any>,
-  schema: Schema
+export const validateObjectSchema = function validateObjectSchema<T>(
+  obj: T,
+  schema: ObjectSchema<T>
 ) {
-  const result = schema
+  const { value, error } = schema
     .label('Object to validate')
     .options({ stripUnknown: true })
     .validate(obj);
 
-  if (result.error) {
-    throw new Error(result.error.stack);
+  if (error) {
+    throw new Error(error.stack);
   }
+
+  return value;
 };
