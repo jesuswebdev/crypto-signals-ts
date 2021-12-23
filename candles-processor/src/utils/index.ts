@@ -69,6 +69,9 @@ export const getOHLCValues = function getOHLCValues(array: CandleAttributes[]) {
   return ohlc;
 };
 
+/**
+ * @description Calculates indicators values of given candles and saves to database.
+ */
 export const processCandles = async function processCandles(
   server: Server,
   candles: CandleTickData[]
@@ -207,6 +210,11 @@ const getRedisKeys = function getRedisKeys(candle: CandleTickData) {
   };
 };
 
+/**
+ * @description Checks if candles need to be processed further according to `PROCESS_CANDLES_INTERVAL` environment variable.
+ * If the candles need to be processed, it will take all the candles stored in redis, filter out the latest values, save to mongodb, and return them,
+ * otherwise it stores the candle data in redis.
+ */
 export const processCandleTick = async function processCandleTick(
   server: Server,
   candle: CandleTickData
