@@ -25,7 +25,6 @@ const messageBrokerPlugin = {
 
       const handler = async (msg: CandleTickData) => {
         await processSignals(server, msg);
-        positionsBroker.publish(POSITION_EVENTS.POSITION_PROCESSED, msg);
       };
 
       positionsBroker
