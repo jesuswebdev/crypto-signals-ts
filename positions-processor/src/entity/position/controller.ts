@@ -31,12 +31,6 @@ export const processOpenPositions = async function processOpenPositions(
 
       try {
         if (position) {
-          const profit = toSymbolPrecision(
-            candle.close_price * position.buy_amount -
-              position.buy_price * position.buy_amount,
-            candle.symbol
-          );
-
           const sell_price = toSymbolPrecision(
             candle.close_price,
             candle.symbol
@@ -52,7 +46,6 @@ export const processOpenPositions = async function processOpenPositions(
                 status: POSITION_STATUS.CLOSED,
                 change: getChange(candle.close_price, position.buy_price),
                 sell_trigger,
-                profit,
                 sell_candle: candle
               }
             },
