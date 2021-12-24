@@ -1,12 +1,15 @@
 import { createClient } from 'redis';
 import { Server } from '@hapi/hapi';
-import { REDIS_URI } from '../config/index';
+
+interface PluginOptions {
+  uri: string;
+}
 
 const redisPlugin = {
   name: 'redis',
   version: '1.0.0',
-  async register(server: Server) {
-    const client = createClient({ url: REDIS_URI });
+  async register(server: Server, options: PluginOptions) {
+    const client = createClient({ url: options.uri });
     client.on('error', (error: unknown) =>
       server.log(['error', 'redis'], error as object)
     );
