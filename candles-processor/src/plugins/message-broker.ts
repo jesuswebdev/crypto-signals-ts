@@ -5,7 +5,7 @@ import {
   EXCHANGE_TYPES,
   CANDLE_EVENTS
 } from '@jwd-crypto-signals/common';
-import { processCandles, processCandleTick } from '../utils';
+import { processCandles, processCandleTick } from '../entity/candle/controller';
 
 interface PluginOptions {
   uri: string;
