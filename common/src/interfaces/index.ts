@@ -4,6 +4,8 @@ export * from './candle';
 export * from './market';
 export * from './signal';
 export * from './position';
+export * from './order';
+export * from './account';
 
 export interface PublishOptions {
   expiration?: string | number | undefined;
