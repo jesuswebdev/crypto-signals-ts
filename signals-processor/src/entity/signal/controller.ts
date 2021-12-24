@@ -5,12 +5,14 @@ import {
   CandleTickData,
   cloneObject,
   DATABASE_MODELS,
+  getBooleanValue,
   getTimeDiff,
   LeanCandleDocument,
   LeanMarketDocument,
   LeanPositionDocument,
   LeanSignalDocument,
   MarketModel,
+  MILLISECONDS,
   PositionModel,
   POSITION_EVENTS,
   POSITION_STATUS,
@@ -29,6 +31,40 @@ export const processSignals = async function processSignals(
   server: Server,
   { symbol, interval }: CandleTickData
 ) {
+  const redisKeys = {
+    lock: `${symbol}_process_signals_lock`,
+    lockDate: `${symbol}_process_signals_lock_date`
+  };
+  const redis = server.plugins.redis.client;
+
+  const removeLock = async () => {
+    await redis.del(redisKeys.lock);
+    await redis.del(redisKeys.lockDate);
+  };
+
+  const setLock = async () => {
+    await redis.set(redisKeys.lock, 1);
+    await redis.set(redisKeys.lockDate, Date.now());
+  };
+
+  const lockDate = await redis.get(redisKeys.lockDate);
+
+  // removes lock if it's been more than three minutes since the last time it was locked
+  if (
+    lockDate &&
+    new Date(+lockDate).getTime() < Date.now() - MILLISECONDS.MINUTE * 3
+  ) {
+    await removeLock();
+  }
+
+  const hasLock = getBooleanValue(await redis.get(redisKeys.lock));
+
+  if (hasLock) {
+    return;
+  }
+
+  await setLock();
+
   const signalModel: SignalModel = server.plugins.mongoose.connection.model(
     DATABASE_MODELS.SIGNAL
   );
@@ -42,8 +78,6 @@ export const processSignals = async function processSignals(
     DATABASE_MODELS.POSITION
   );
 
-  const publishPosition = server.plugins.broker.publish;
-
   const count = await candleModel.countDocuments({
     $and: [
       { symbol },
@@ -52,6 +86,8 @@ export const processSignals = async function processSignals(
   });
 
   if (count < 150) {
+    await removeLock();
+
     return;
   }
 
@@ -111,8 +147,12 @@ export const processSignals = async function processSignals(
       });
     }
 
+    await removeLock();
+
     return;
   }
+
+  const publishPosition = server.plugins.broker.publish;
 
   const updated_signals_promises = open_signals.map(
     async (open_signal, index) => {
@@ -182,6 +222,8 @@ export const processSignals = async function processSignals(
   );
 
   await Promise.all(updated_signals_promises);
+
+  await removeLock();
 
   return;
 };

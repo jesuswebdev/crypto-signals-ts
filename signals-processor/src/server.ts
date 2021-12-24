@@ -6,12 +6,15 @@ import {
   MONGODB_URI,
   LAST_POSITION_HOURS_LOOKUP,
   SIGNAL_HOURS_LOOKUP,
-  POSITION_TAKE_PROFIT
+  POSITION_TAKE_PROFIT,
+  REDIS_URI
 } from './config/index';
 import {
   MessageBrokerPlugin,
-  MongoosePlugin
+  MongoosePlugin,
+  RedisPlugin
 } from '@jwd-crypto-signals/common';
+import { redisPlugin } from './plugins/redis';
 
 let server: Server;
 
@@ -21,6 +24,7 @@ declare module '@hapi/hapi' {
     [key: string]: any;
     mongoose: MongoosePlugin;
     broker: MessageBrokerPlugin;
+    redis: RedisPlugin;
   }
   export interface ServerApplicationState {
     LAST_POSITION_HOURS_LOOKUP: number;
@@ -52,6 +56,7 @@ export async function init() {
   });
 
   await server.register([
+    { plugin: redisPlugin, options: { uri: REDIS_URI } },
     { plugin: mongoosePlugin, options: { uri: MONGODB_URI } },
     { plugin: messageBrokerPlugin, options: { uri: MESSAGE_BROKER_URI } }
   ]);
