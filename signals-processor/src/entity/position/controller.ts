@@ -8,7 +8,6 @@ import {
   toSymbolPrecision
 } from '@jwd-crypto-signals/common';
 import { Server } from '@hapi/hapi';
-import { v4 as uuidv4 } from 'uuid';
 
 export const createPosition = async function createPosition(
   server: Server,
@@ -27,7 +26,7 @@ export const createPosition = async function createPosition(
     candle.atr_stop < price ? candle.atr_stop : price - candle.atr * 3;
 
   const createdPosition: PositionDocument = await positionModel.create({
-    id: uuidv4(),
+    id: `${candle.symbol}_${candle.interval}_${candle.event_time}`,
     symbol: signal.symbol,
     open_time: Date.now(),
     date: new Date(),

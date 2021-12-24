@@ -1,5 +1,4 @@
 import { Server } from '@hapi/hapi';
-import { v4 as uuidv4 } from 'uuid';
 import {
   CandleModel,
   CandleTickData,
@@ -143,7 +142,7 @@ export const processSignals = async function processSignals(
           last_candle.symbol
         ),
         open_candle: getPlainCandle(last_candle),
-        id: uuidv4()
+        id: `${symbol}_${interval}_${last_candle.event_time}`
       });
     }
 
