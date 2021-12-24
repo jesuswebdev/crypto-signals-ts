@@ -7,7 +7,8 @@ import {
   MarketModel,
   getTimeDiff
 } from '@jwd-crypto-signals/common';
-import { buildCandles, processCandles } from '../../utils';
+import { buildCandles } from '../../utils';
+import { processCandles } from './controller';
 
 const candlesRoutes = {
   name: 'candles routes',
