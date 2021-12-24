@@ -8,7 +8,7 @@ export const createSignalSchema = function createSignalSchema(
 ) {
   const schema = new Schema<SignalAttributes>(
     {
-      id: { type: String, required: true },
+      id: { type: String, required: true, unique: true },
       time: { type: Number, required: true, validate: numberSchemaValidation },
       trigger_time: {
         type: Number,

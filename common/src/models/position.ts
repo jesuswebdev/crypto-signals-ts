@@ -12,7 +12,7 @@ export const createPositionSchema = function createPositionSchema(
 ) {
   const schema = new Schema<PositionAttributes>(
     {
-      id: { type: String, required: true },
+      id: { type: String, required: true, unique: true },
       symbol: { type: String, required: true },
       open_time: {
         type: Number,
