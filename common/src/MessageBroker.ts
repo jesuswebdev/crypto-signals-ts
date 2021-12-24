@@ -96,8 +96,8 @@ export class MessageBroker<T> {
           }
           this.boundChannel?.ack(msg);
         } catch (error) {
-          console.error(error);
           this.boundChannel?.nack(msg);
+          throw error;
         }
       }
     });
