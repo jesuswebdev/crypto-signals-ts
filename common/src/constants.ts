@@ -21,6 +21,7 @@ export enum CANDLE_EVENTS {
 export enum POSITION_EVENTS {
   POSITION_CREATED = 'position.created',
   POSITION_CLOSED = 'position.closed',
+  POSITION_CLOSED_REQUEUE = 'position.closed/requeue',
   POSITION_PROCESSED = 'position.processed'
 }
 
