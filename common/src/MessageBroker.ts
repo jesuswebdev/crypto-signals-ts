@@ -1,4 +1,4 @@
-import amqplib, { ConsumeMessage } from 'amqplib';
+import amqplib, { Channel, ConsumeMessage } from 'amqplib';
 import { MILLISECONDS, PublishOptions } from '.';
 
 interface MessageBrokerConstructorOptions {
@@ -9,7 +9,7 @@ interface MessageBrokerConstructorOptions {
 }
 
 interface OnMessageHandler<T> {
-  (msg: T, rawMsg: ConsumeMessage): Promise<void> | void;
+  (msg: ListenMessage<T>): Promise<void> | void;
 }
 
 export class MessageBroker<T> {
@@ -112,23 +112,80 @@ export class MessageBroker<T> {
 
     this.boundChannel.consume(q.queue, async msg => {
       if (msg !== null) {
+        const message = new ListenMessage({
+          rawMessage: msg,
+          data: this.decodeMessage(msg),
+          boundChannel: this.boundChannel as Channel
+        });
+
         try {
           if (handler instanceof Promise) {
-            await handler(this.decodeMessage(msg), msg);
+            await handler(message);
           } else {
-            handler(this.decodeMessage(msg), msg);
+            handler(message);
           }
 
           if (this.autoAck) {
-            this.boundChannel?.ack(msg);
+            message.ack();
           }
         } catch (error) {
           if (this.autoAck) {
-            this.boundChannel?.nack(msg);
+            message.nack();
           }
           throw error;
         }
       }
     });
+  }
+}
+
+interface ListenMessageConstructorOptions<T> {
+  rawMessage: ConsumeMessage;
+  data: T;
+  boundChannel: Channel;
+}
+
+export class ListenMessage<T> {
+  private readonly _raw: ConsumeMessage;
+  private readonly _data: T;
+  private readonly boundChannel: Channel;
+
+  constructor({
+    rawMessage,
+    data,
+    boundChannel
+  }: ListenMessageConstructorOptions<T>) {
+    this._raw = rawMessage;
+    this._data = data;
+    this.boundChannel = boundChannel;
+  }
+
+  get raw() {
+    return this._raw;
+  }
+
+  get data() {
+    return this._data;
+  }
+
+  ack(allUpTo?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel.ack(this._raw, allUpTo);
+  }
+
+  nack(allUpTo?: boolean, requeue?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel?.nack(this._raw, allUpTo, requeue);
+  }
+
+  reject(requeue?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel?.reject(this._raw, requeue);
   }
 }
