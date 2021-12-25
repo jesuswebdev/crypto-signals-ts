@@ -5,6 +5,7 @@ interface MessageBrokerConstructorOptions {
   uri: string;
   exchange: string;
   queue?: string;
+  autoAck?: boolean;
 }
 
 interface OnMessageHandler<T> {
@@ -12,16 +13,18 @@ interface OnMessageHandler<T> {
 }
 
 export class MessageBroker<T> {
-  uri: string;
-  exchange: string;
-  queue: string | undefined;
-  connection: amqplib.Connection | undefined;
-  boundChannel: amqplib.Channel | undefined;
+  private readonly uri: string;
+  private readonly exchange: string;
+  private readonly queue: string | undefined;
+  private readonly autoAck: boolean;
+  private connection: amqplib.Connection | undefined;
+  private boundChannel: amqplib.Channel | undefined;
 
   constructor(options: MessageBrokerConstructorOptions) {
     this.uri = options.uri;
     this.exchange = options.exchange;
     this.queue = options.queue;
+    this.autoAck = options.autoAck ?? true;
   }
 
   async initializeConnection() {
@@ -46,11 +49,11 @@ export class MessageBroker<T> {
     await this.connection?.close();
   }
 
-  encodeMessage(data: T): Buffer {
+  private encodeMessage(data: T): Buffer {
     return Buffer.from(JSON.stringify(data));
   }
 
-  decodeMessage(msg: ConsumeMessage): T {
+  private decodeMessage(msg: ConsumeMessage): T {
     return JSON.parse(msg.content.toString());
   }
 
@@ -69,6 +72,27 @@ export class MessageBroker<T> {
         ...options
       }
     );
+  }
+
+  ackMessage(msg: ConsumeMessage, allUpTo?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel?.ack(msg, allUpTo);
+  }
+
+  nackMessage(msg: ConsumeMessage, allUpTo?: boolean, requeue?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel?.nack(msg, allUpTo, requeue);
+  }
+
+  rejectMessage(msg: ConsumeMessage, requeue?: boolean) {
+    if (!this.boundChannel) {
+      throw new Error('No channel bound');
+    }
+    this.boundChannel?.reject(msg, requeue);
   }
 
   async listen(topic: string, handler: OnMessageHandler<T>) {
@@ -94,9 +118,14 @@ export class MessageBroker<T> {
           } else {
             handler(this.decodeMessage(msg), msg);
           }
-          this.boundChannel?.ack(msg);
+
+          if (this.autoAck) {
+            this.boundChannel?.ack(msg);
+          }
         } catch (error) {
-          this.boundChannel?.nack(msg);
+          if (this.autoAck) {
+            this.boundChannel?.nack(msg);
+          }
           throw error;
         }
       }
