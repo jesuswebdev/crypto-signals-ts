@@ -168,6 +168,10 @@ export class ListenMessage<T> {
     return this._data;
   }
 
+  getRoutingKey(): string {
+    return this._raw.fields.routingKey;
+  }
+
   ack(allUpTo?: boolean) {
     if (!this.boundChannel) {
       throw new Error('No channel bound');
