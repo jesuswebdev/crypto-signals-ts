@@ -77,6 +77,7 @@ export const createPositionSchema = function createPositionSchema(
   schema.index({ status: 1, close_time: 1 });
   schema.index({ symbol: 1, status: 1, open_time: -1 });
   schema.index({ id: 1, signal: 1 });
+  schema.index({ id: 1, 'buy_order.orderId': 1 });
 
   return schema;
 };
