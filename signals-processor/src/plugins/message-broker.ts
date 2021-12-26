@@ -3,7 +3,8 @@ import {
   CandleTickData,
   MessageBroker,
   EXCHANGE_TYPES,
-  POSITION_EVENTS
+  POSITION_EVENTS,
+  ListenMessage
 } from '@jwd-crypto-signals/common';
 import { processSignals } from '../entity/signal/controller';
 
@@ -24,8 +25,8 @@ const messageBrokerPlugin = {
 
       await positionsBroker.initializeConnection();
 
-      const handler = async (msg: CandleTickData) => {
-        await processSignals(server, msg);
+      const handler = async (msg: ListenMessage<CandleTickData>) => {
+        await processSignals(server, msg.data);
       };
 
       positionsBroker

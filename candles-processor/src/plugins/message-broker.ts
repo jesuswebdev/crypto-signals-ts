@@ -3,7 +3,8 @@ import {
   CandleTickData,
   MessageBroker,
   EXCHANGE_TYPES,
-  CANDLE_EVENTS
+  CANDLE_EVENTS,
+  ListenMessage
 } from '@jwd-crypto-signals/common';
 import { processCandles, processCandleTick } from '../entity/candle/controller';
 
@@ -24,13 +25,13 @@ const messageBrokerPlugin = {
 
       await broker.initializeConnection();
 
-      const handler = async (msg: CandleTickData) => {
-        const candles = await processCandleTick(server, msg);
+      const handler = async (msg: ListenMessage<CandleTickData>) => {
+        const candles = await processCandleTick(server, msg.data);
 
         if (candles && candles.length > 0) {
           await processCandles(server, candles);
 
-          broker.publish(CANDLE_EVENTS.CANDLE_PROCESSED, msg);
+          broker.publish(CANDLE_EVENTS.CANDLE_PROCESSED, msg.data);
         }
       };
 

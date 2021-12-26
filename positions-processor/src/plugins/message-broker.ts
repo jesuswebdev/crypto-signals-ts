@@ -4,7 +4,8 @@ import {
   MessageBroker,
   EXCHANGE_TYPES,
   CANDLE_EVENTS,
-  POSITION_EVENTS
+  POSITION_EVENTS,
+  ListenMessage
 } from '@jwd-crypto-signals/common';
 import { processOpenPositions } from '../entity/position/controller';
 
@@ -33,9 +34,9 @@ const messageBrokerPlugin = {
         positionsBroker.initializeConnection()
       ]);
 
-      const handler = async (msg: CandleTickData) => {
-        await processOpenPositions(server, msg);
-        positionsBroker.publish(POSITION_EVENTS.POSITION_PROCESSED, msg);
+      const handler = async (msg: ListenMessage<CandleTickData>) => {
+        await processOpenPositions(server, msg.data);
+        positionsBroker.publish(POSITION_EVENTS.POSITION_PROCESSED, msg.data);
       };
 
       candlesBroker
