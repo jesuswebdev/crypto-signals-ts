@@ -20,6 +20,7 @@ import {
   BinancePlugin
 } from '@jwd-crypto-signals/common';
 import { candlesRoutes } from './entity/candle/routes';
+import { fillCandlesData } from './entity/candle/controller';
 
 let server: Server;
 
@@ -77,6 +78,8 @@ export async function init() {
     },
     { plugin: candlesRoutes }
   ]);
+
+  await fillCandlesData(server);
 
   return server;
 }

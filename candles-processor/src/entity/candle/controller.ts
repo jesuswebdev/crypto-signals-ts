@@ -6,9 +6,15 @@ import {
   getBooleanValue,
   getTimeDiff,
   LeanCandleDocument,
-  MarketModel
+  MarketModel,
+  PAIRS
 } from '@jwd-crypto-signals/common';
-import { getIndicatorsValues, getOHLCValues, getRedisKeys } from '../../utils';
+import {
+  buildCandles,
+  getIndicatorsValues,
+  getOHLCValues,
+  getRedisKeys
+} from '../../utils';
 
 interface RedisError {
   code: string;
@@ -175,4 +181,64 @@ export const processCandles = async function processCandles(
       { ordered: false }
     );
   }
+};
+
+export const fillCandlesData = async function fillCandlesData(server: Server) {
+  const binance = server.plugins.binance.client;
+  const candleModel: CandleModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.CANDLE
+  );
+  const marketModel: MarketModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.MARKET
+  );
+
+  console.log('Attempting to fill candles data...');
+
+  for (const pair of PAIRS) {
+    const symbol = pair.symbol;
+    const interval = server.app.CANDLE_INTERVAL;
+    console.log('Current pair: ', pair.symbol);
+
+    const count = await candleModel.count({
+      $and: [
+        { symbol },
+        { open_time: { $gte: Date.now() - getTimeDiff(155, interval) } },
+        { open_time: { $lte: Date.now() } }
+      ]
+    });
+
+    if (count < 150) {
+      const query = new URLSearchParams({
+        symbol,
+        interval,
+        startTime: (Date.now() - getTimeDiff(155, interval)).toString()
+      }).toString();
+
+      const { data } = await binance.get(`/api/v3/klines?${query}`);
+
+      if (Array.isArray(data) && data.length > 0) {
+        const processed = buildCandles({
+          candles: data as [number[]],
+          symbol,
+          interval
+        });
+
+        await candleModel.deleteMany({ $and: [{ symbol }, { interval }] });
+        await candleModel.insertMany(processed);
+
+        const marketExists = await marketModel.exists({ symbol });
+
+        if (!marketExists) {
+          await marketModel.create({
+            symbol,
+            last_price: processed[processed.length - 1].close_price
+          });
+        }
+
+        await processCandles(server, processed.slice(-5));
+      }
+    }
+  }
+
+  console.log('Finished filling candles data');
 };
