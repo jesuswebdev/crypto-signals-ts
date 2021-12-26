@@ -18,6 +18,8 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - ./observer/.env
+    environment:
+      - RABBITMQ_SERVICE_HOST=rabbitmq
     depends_on: 
       - rabbitmq
   candles-processor:
@@ -27,6 +29,10 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - ./candles-processor/.env
+    environment:
+      - RABBITMQ_SERVICE_HOST=rabbitmq
+      - MONGODB_SERVICE_HOST=mongodb
+      - REDIS_SERVICE_HOST=redis
     depends_on: 
       - mongodb
       - redis
@@ -38,6 +44,9 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - ./positions-processor/.env
+    environment:
+      - RABBITMQ_SERVICE_HOST=rabbitmq
+      - MONGODB_SERVICE_HOST=mongodb
     depends_on: 
       - mongodb
       - rabbitmq
@@ -48,6 +57,10 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - ./signals-processor/.env
+    environment:
+      - RABBITMQ_SERVICE_HOST=rabbitmq
+      - MONGODB_SERVICE_HOST=mongodb
+      - REDIS_SERVICE_HOST=redis
     depends_on: 
       - mongodb
       - rabbitmq
