@@ -170,7 +170,13 @@ export const createBuyOrder = async function createBuyOrder(
     throw new Error(`Account with ID '${process.env.NODE_ENV}' not found.`);
   }
 
-  const enoughBalance = account.available_balance > DEFAULT_BUY_AMOUNT;
+  const market: LeanMarketDocument = await marketModel
+    .findOne({ symbol: position.symbol })
+    .hint('symbol_1')
+    .lean();
+
+  const enoughBalance =
+    market.use_main_account && account.available_balance > DEFAULT_BUY_AMOUNT;
   const positionHasBuyOrder = await positionModel.exists({
     $and: [{ id: position.id }, { 'buy_order.orderId': { $exists: true } }]
   });
@@ -201,11 +207,6 @@ export const createBuyOrder = async function createBuyOrder(
 
     return;
   }
-
-  const market: LeanMarketDocument = await marketModel
-    .findOne({ symbol: position.symbol })
-    .hint('symbol_1')
-    .lean();
 
   if (market.trader_lock) {
     server.log(
@@ -306,20 +307,18 @@ export const createSellOrder = async function createSellOrder(
 
   const hasBuyOrder = !!position.buy_order;
 
-  if (Date.now() < account?.create_order_after || !hasBuyOrder) {
-    let reason = '10s order limit reached.';
-    let requeue = true;
-
-    if (!hasBuyOrder) {
-      requeue = false;
-      reason = 'Position does not have buy order.';
-    }
-
+  if (Date.now() < account?.create_order_after) {
     server.log(
       ['warn', 'create-sell-order'],
-      `${position.id} | Unable to continue. Reason: ${reason}`
+      `${position.id} | Unable to continue. Reason: 10s order limit reached.`
     );
-    msg.nack(false, requeue);
+    msg.nack();
+
+    return;
+  }
+
+  if (!hasBuyOrder) {
+    msg.nack(false, false);
 
     return;
   }
