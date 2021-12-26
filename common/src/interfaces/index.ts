@@ -40,3 +40,7 @@ export interface MongoosePlugin {
 export interface RedisPlugin {
   client: RedisClientType;
 }
+
+export interface MongoError {
+  code: number;
+}
