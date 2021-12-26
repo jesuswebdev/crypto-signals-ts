@@ -1,7 +1,11 @@
-import { MILLISECONDS, validateObjectSchema } from '@jwd-crypto-signals/common';
 import Joi from 'joi';
 import dotenv from 'dotenv';
 dotenv.config();
+import {
+  MILLISECONDS,
+  QUOTE_ASSETS,
+  validateObjectSchema
+} from '@jwd-crypto-signals/common';
 
 const env = validateObjectSchema(
   process.env,
@@ -18,7 +22,10 @@ const env = validateObjectSchema(
       .integer()
       .positive()
       .default(365 * 24),
-    POSITION_TAKE_PROFIT: Joi.number().integer().positive().required()
+    POSITION_TAKE_PROFIT: Joi.number().integer().positive().required(),
+    QUOTE_ASSET: Joi.string()
+      .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
+      .required()
   })
 );
 

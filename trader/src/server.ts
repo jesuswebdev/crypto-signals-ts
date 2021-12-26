@@ -1,6 +1,4 @@
 import Hapi, { Server } from '@hapi/hapi';
-import { messageBrokerPlugin } from './plugins/message-broker';
-import { mongoosePlugin } from './plugins/mongoose';
 import {
   BINANCE_API_KEY,
   BINANCE_API_SECRET,
@@ -8,6 +6,8 @@ import {
   MESSAGE_BROKER_URI,
   MONGODB_URI
 } from './config/index';
+import { messageBrokerPlugin } from './plugins/message-broker';
+import { mongoosePlugin } from './plugins/mongoose';
 import {
   BinancePlugin,
   binancePlugin,

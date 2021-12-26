@@ -1,18 +1,17 @@
-import {
-  BINANCE_ORDER_TYPES,
-  QUOTE_ASSETS,
-  validateObjectSchema
-} from '@jwd-crypto-signals/common';
 import Joi from 'joi';
 import dotenv from 'dotenv';
 import path from 'path';
-
 dotenv.config({
   path: path.resolve(
     __dirname,
     `../../.env${process.env.NODE_ENV ? '.' + process.env.NODE_ENV : ''}`
   )
 });
+import {
+  BINANCE_ORDER_TYPES,
+  QUOTE_ASSETS,
+  validateObjectSchema
+} from '@jwd-crypto-signals/common';
 
 const env = validateObjectSchema(
   process.env,
@@ -23,7 +22,6 @@ const env = validateObjectSchema(
     RABBITMQ_SERVICE_HOST: Joi.string().hostname().required(),
     RABBITMQ_SERVICE_PORT: Joi.number().port().default(5672),
     NODE_ENV: Joi.string().default('development'),
-    QUOTE_ASSET: Joi.string().trim().allow(QUOTE_ASSETS).required(),
     BUY_ORDER_TYPE: Joi.string().allow(BINANCE_ORDER_TYPES).required(),
     SELL_ORDER_TYPE: Joi.string().allow(BINANCE_ORDER_TYPES).required(),
     DEFAULT_BUY_AMOUNT: Joi.number().positive().greater(0).required(),
@@ -32,7 +30,10 @@ const env = validateObjectSchema(
     BINANCE_API_SECRET: Joi.string().trim().base64().required(),
     BINANCE_MINIMUM_ORDER_SIZE: Joi.number().positive().greater(0).required(),
     BUY_ORDER_TTL: Joi.number().integer().positive().greater(0).default(600),
-    SELL_ORDER_TTL: Joi.number().integer().positive().greater(0).default(600)
+    SELL_ORDER_TTL: Joi.number().integer().positive().greater(0).default(600),
+    QUOTE_ASSET: Joi.string()
+      .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
+      .required()
   })
 );
 

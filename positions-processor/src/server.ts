@@ -1,11 +1,11 @@
 import Hapi, { Server } from '@hapi/hapi';
-import { messageBrokerPlugin } from './plugins/message-broker';
-import { mongoosePlugin } from './plugins/mongoose';
-import { MESSAGE_BROKER_URI, MONGODB_URI } from './config/index';
 import {
   MessageBrokerPlugin,
   MongoosePlugin
 } from '@jwd-crypto-signals/common';
+import { messageBrokerPlugin } from './plugins/message-broker';
+import { mongoosePlugin } from './plugins/mongoose';
+import { MESSAGE_BROKER_URI, MONGODB_URI } from './config/index';
 
 let server: Server;
 

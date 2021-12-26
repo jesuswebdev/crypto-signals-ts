@@ -1,6 +1,4 @@
 import Hapi, { Server } from '@hapi/hapi';
-import { messageBrokerPlugin } from './plugins/message-broker';
-import { mongoosePlugin } from './plugins/mongoose';
 import {
   MESSAGE_BROKER_URI,
   MONGODB_URI,
@@ -9,6 +7,8 @@ import {
   POSITION_TAKE_PROFIT,
   REDIS_URI
 } from './config/index';
+import { messageBrokerPlugin } from './plugins/message-broker';
+import { mongoosePlugin } from './plugins/mongoose';
 import {
   MessageBrokerPlugin,
   MongoosePlugin,
