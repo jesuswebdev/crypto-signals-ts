@@ -1,12 +1,18 @@
 import { ObjectSchema } from 'joi';
 import { MILLISECONDS } from './constants';
-import { PAIRS } from './btc_pairs';
-export { PAIRS };
+import { PAIRS as BTC_PAIRS } from './btc_pairs';
+import { PAIRS as BUSD_PAIRS } from './busd_pairs';
 export * from './MessageBroker';
 export * from './constants';
 export * from './interfaces';
 export * from './models';
 export * from './plugins';
+
+let PAIRS = BTC_PAIRS;
+
+if (process.env.QUOTE_ASSET === 'BUSD') {
+  PAIRS = BUSD_PAIRS;
+}
 
 export const cloneObject = function cloneObject<T>(obj: T): T {
   return obj ? JSON.parse(JSON.stringify(obj)) : obj;
