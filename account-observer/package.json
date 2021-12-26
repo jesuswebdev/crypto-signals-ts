@@ -1,0 +1,37 @@
+{
+  "name": "account-observer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "start": "node ./lib/index",
+    "dev": "ts-node ./src/index",
+    "docker:build": "npm run build && docker build -t jwd-crypto-signals/account-observer -f ./Dockerfile .",
+    "docker:run": "docker run --name crypto-signals-account-observer -d --env-file=./.env jwd-crypto-signals/account-observer",
+    "docker:rm": "docker stop crypto-signals-account-observer && docker rm crypto-signals-account-observer",
+    "docker:push": "docker push jwd-crypto-signals/account-observer"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/hapi__hapi": "^20.0.10",
+    "@types/ws": "^8.2.2",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "@typescript-eslint/parser": "^5.8.0",
+    "eslint": "^8.5.0"
+  },
+  "dependencies": {
+    "@hapi/hapi": "^20.2.1",
+    "@jwd-crypto-signals/common": "^1.0.29",
+    "dotenv": "^10.0.0",
+    "joi": "^17.5.0",
+    "mongoose": "^6.1.3",
+    "rimraf": "^3.0.2",
+    "ws": "^8.4.0"
+  }
+}
