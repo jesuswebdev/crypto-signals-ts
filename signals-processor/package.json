@@ -9,10 +9,10 @@
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "start": "node ./lib/index",
     "dev": "ts-node ./src/index",
-    "docker:build": "npm run build && docker build -t jwd-crypto-signals/signals-processor -f ./Dockerfile .",
-    "docker:run": "docker run --name crypto-signals-signals-processor -d --env-file=./.env jwd-crypto-signals/signals-processor",
+    "docker:build": "npm run build && docker build -t jesuswebdev/crypto-signals-signals-processor -f ./Dockerfile .",
+    "docker:run": "docker run --name crypto-signals-signals-processor -d --env-file=./.env jesuswebdev/crypto-signals-signals-processor",
     "docker:rm": "docker stop crypto-signals-signals-processor && docker rm crypto-signals-signals-processor",
-    "docker:push": "docker push jwd-crypto-signals/signals-processor"
+    "docker:push": "docker push jesuswebdev/crypto-signals-signals-processor"
   },
   "keywords": [],
   "author": "",

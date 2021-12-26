@@ -9,10 +9,10 @@
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "start": "node ./lib/index",
     "dev": "ts-node ./src/index",
-    "docker:build": "npm run build && docker build -t jwd-crypto-signals/trader -f ./Dockerfile .",
-    "docker:run": "docker run --name crypto-signals-trader -d --env-file=./.env jwd-crypto-signals/trader",
+    "docker:build": "npm run build && docker build -t jesuswebdev/crypto-signals-trader -f ./Dockerfile .",
+    "docker:run": "docker run --name crypto-signals-trader -d --env-file=./.env jesuswebdev/crypto-signals-trader",
     "docker:rm": "docker stop crypto-signals-trader && docker rm crypto-signals-trader",
-    "docker:push": "docker push jwd-crypto-signals/trader",
+    "docker:push": "docker push jesuswebdev/crypto-signals-trader",
     "test": "jest"
   },
   "keywords": [],
