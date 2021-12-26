@@ -10,6 +10,7 @@ import {
 const env = validateObjectSchema(
   process.env,
   Joi.object({
+    NODE_ENV: Joi.string().default('development'),
     MONGODB_SERVICE_HOST: Joi.string().hostname().required(),
     MONGODB_SERVICE_PORT: Joi.number().port().default(27017),
     MONGODB_DATABASE: Joi.string().required(),

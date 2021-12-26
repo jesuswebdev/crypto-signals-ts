@@ -6,6 +6,7 @@ import { QUOTE_ASSETS, validateObjectSchema } from '@jwd-crypto-signals/common';
 const env = validateObjectSchema(
   process.env,
   joi.object({
+    NODE_ENV: joi.string().default('development'),
     INTERVAL: joi
       .string()
       .pattern(new RegExp('^[\\d]{1,2}(d|h|m)$'))
