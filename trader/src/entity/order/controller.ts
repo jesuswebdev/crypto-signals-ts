@@ -45,7 +45,8 @@ export const setOrderTimeout = function setOrderTimeout(
         order.status !== BINANCE_ORDER_STATUS.FILLED
       ) {
         if (paramOrder.side === 'BUY') {
-          console.log(
+          server.log(
+            ['debug'],
             `Buy order (${order.symbol}-${order.orderId}) has timed out. Cancelling...`
           );
           const cancelQuery = new URLSearchParams({
@@ -56,7 +57,8 @@ export const setOrderTimeout = function setOrderTimeout(
             `/api/v3/order?${cancelQuery}`
           );
         } else {
-          console.log(
+          server.log(
+            ['debug'],
             `Sell order (${order.symbol}-${order.orderId}) has timed out. Creating new market order instead.`
           );
           const positionModel: PositionModel =
@@ -191,7 +193,10 @@ export const createBuyOrder = async function createBuyOrder(
       requeue = false;
     }
 
-    console.log(`${position._id} | Unable to continue. Reason: ${reason}`);
+    server.log(
+      ['warn', 'create-buy-order'],
+      `${position._id} | Unable to continue. Reason: ${reason}`
+    );
     msg.nack(false, requeue);
 
     return;
@@ -203,7 +208,10 @@ export const createBuyOrder = async function createBuyOrder(
     .lean();
 
   if (market.trader_lock) {
-    console.log(`${position.symbol} | Market lock is set. Unable to continue.`);
+    server.log(
+      ['warn', 'create-buy-order'],
+      `${position.symbol} | Market lock is set. Unable to continue.`
+    );
     msg.nack(false, true);
 
     return;
@@ -234,7 +242,8 @@ export const createBuyOrder = async function createBuyOrder(
   }
 
   try {
-    console.log(
+    server.log(
+      ['debug'],
       `${position._id} | Attempting to create order: ${JSON.stringify(query)} `
     );
 
@@ -306,7 +315,10 @@ export const createSellOrder = async function createSellOrder(
       reason = 'Position does not have buy order.';
     }
 
-    console.log(`${position.id} | Unable to continue. Reason: ${reason}`);
+    server.log(
+      ['warn', 'create-sell-order'],
+      `${position.id} | Unable to continue. Reason: ${reason}`
+    );
     msg.nack(false, requeue);
 
     return;
@@ -318,7 +330,10 @@ export const createSellOrder = async function createSellOrder(
     .lean();
 
   if (market.trader_lock) {
-    console.log(`${position.symbol} | Market lock is set. Unable to continue.`);
+    server.log(
+      ['warn', 'create-sell-order'],
+      `${position.symbol} | ${position._id} | Market lock is set. Unable to continue.`
+    );
     msg.nack();
 
     return;
@@ -355,7 +370,8 @@ export const createSellOrder = async function createSellOrder(
       buy_order.status !== BINANCE_ORDER_STATUS.CANCELED &&
       buy_order.status !== BINANCE_ORDER_STATUS.FILLED
     ) {
-      console.log(
+      server.log(
+        ['debug'],
         `${position.id} | Order (${buy_order.symbol}-${buy_order.orderId}) has not been filled. Cancelling...`
       );
       //cancel order and refetch from db
@@ -395,9 +411,9 @@ export const createSellOrder = async function createSellOrder(
       position.symbol
     ).toString();
 
-    console.log(
-      `${position._id} | Attempting to create order: `,
-      JSON.stringify(query)
+    server.log(
+      ['debug'],
+      `${position._id} | Attempting to create order: ${JSON.stringify(query)}`
     );
 
     const searchParams = new URLSearchParams(query).toString();
@@ -408,9 +424,9 @@ export const createSellOrder = async function createSellOrder(
     await checkHeaders(headers, accountModel);
 
     if (data?.orderId) {
-      console.log(
-        position._id + ' | Request completed. Order created: ',
-        position.symbol + '-' + data.orderId
+      server.log(
+        ['debug'],
+        `${position._id} | Request completed. Order created: ${position.symbol}-${data.orderId}`
       );
 
       await positionModel.findOneAndUpdate(

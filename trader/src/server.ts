@@ -30,9 +30,11 @@ declare module '@hapi/hapi' {
 export async function init() {
   server = Hapi.server({ host: '0.0.0.0', port: process.env.PORT || 8080 });
 
-  server.events.on('log', event => {
-    if (event.error) {
+  server.events.on('log', (event, tags) => {
+    if (tags.error) {
       console.error(event);
+    } else if (tags.warn) {
+      console.warn(event);
     }
   });
 
