@@ -9,10 +9,10 @@
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "start": "node ./lib/index",
     "dev": "ts-node ./src/index",
-    "docker:build": "npm run build && docker build -t jwd-crypto-signals/observer -f ./Dockerfile .",
-    "docker:run": "docker run --name crypto-signals-observer -d --env-file=./.env jwd-crypto-signals/observer",
+    "docker:build": "npm run build && docker build -t jesuswebdev/crypto-signals-observer -f ./Dockerfile .",
+    "docker:run": "docker run --name crypto-signals-observer -d --env-file=./.env jesuswebdev/crypto-signals-observer",
     "docker:rm": "docker stop crypto-signals-observer && docker rm crypto-signals-observer",
-    "docker:push": "docker push jwd-crypto-signals/observer"
+    "docker:push": "docker push jesuswebdev/crypto-signals-observer:latest"
   },
   "keywords": [],
   "author": "jesuswebdev",
