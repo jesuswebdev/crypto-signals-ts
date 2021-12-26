@@ -14,6 +14,8 @@ if (process.env.QUOTE_ASSET === 'BUSD') {
   PAIRS = BUSD_PAIRS;
 }
 
+export { PAIRS };
+
 export const cloneObject = function cloneObject<T>(obj: T): T {
   return obj ? JSON.parse(JSON.stringify(obj)) : obj;
 };
