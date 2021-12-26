@@ -17,7 +17,8 @@ import {
   POSITION_STATUS,
   SignalDocument,
   SignalModel,
-  toSymbolPrecision
+  toSymbolPrecision,
+  MongoError
 } from '@jwd-crypto-signals/common';
 import { applyStrategy } from '../../strategy';
 import { getPlainCandle } from '../../utils';
@@ -41,9 +42,11 @@ export const processSignals = async function processSignals(
     await redis.del(redisKeys.lockDate);
   };
 
-  const setLock = async () => {
-    await redis.set(redisKeys.lock, 1);
-    await redis.set(redisKeys.lockDate, Date.now());
+  const setLock = () => {
+    return Promise.allSettled([
+      redis.set(redisKeys.lock, 1),
+      redis.set(redisKeys.lockDate, Date.now())
+    ]);
   };
 
   const lockDate = await redis.get(redisKeys.lockDate);
@@ -135,15 +138,27 @@ export const processSignals = async function processSignals(
     const triggeredSignal = applyStrategy(candles, last_open_position);
 
     if (triggeredSignal) {
-      await signalModel.create({
-        ...triggeredSignal,
-        trailing_stop_buy: toSymbolPrecision(
-          last_candle.close_price,
-          last_candle.symbol
-        ),
-        open_candle: getPlainCandle(last_candle),
-        id: `${symbol}_${interval}_${last_candle.event_time}`
-      });
+      const id = `${symbol}_${interval}_${last_candle.event_time}`;
+
+      try {
+        await signalModel.create({
+          ...triggeredSignal,
+          trailing_stop_buy: toSymbolPrecision(
+            last_candle.close_price,
+            last_candle.symbol
+          ),
+          open_candle: getPlainCandle(last_candle),
+          id
+        });
+      } catch (error: unknown) {
+        if ((error as MongoError).code === 11000) {
+          server.log(
+            ['warn', 'create-signal'],
+            `Trying to create duplicate signal with ID '${id}'`
+          );
+        }
+        server.log(['error'], error as object);
+      }
     }
 
     await removeLock();
@@ -189,13 +204,24 @@ export const processSignals = async function processSignals(
             },
             { new: true }
           );
-          const createdPosition = await createPosition(
-            server,
-            updatedSignal as SignalDocument,
-            last_candle
-          );
 
-          publishPosition(POSITION_EVENTS.POSITION_CREATED, createdPosition);
+          try {
+            const createdPosition = await createPosition(
+              server,
+              updatedSignal as SignalDocument,
+              last_candle
+            );
+
+            publishPosition(POSITION_EVENTS.POSITION_CREATED, createdPosition);
+          } catch (error: unknown) {
+            if ((error as MongoError).code === 11000) {
+              server.log(
+                ['warn', 'create-position'],
+                `Trying to create duplicate position for signal with ID '${updatedSignal?._id}'`
+              );
+            }
+            server.log(['error'], error as object);
+          }
 
           return Promise.resolve();
         }
@@ -206,11 +232,9 @@ export const processSignals = async function processSignals(
         );
 
         if (tsb < open_signal.trailing_stop_buy) {
-          await signalModel.findByIdAndUpdate(
-            open_signal._id,
-            { $set: { trailing_stop_buy: tsb } },
-            { new: true }
-          );
+          await signalModel.findByIdAndUpdate(open_signal._id, {
+            $set: { trailing_stop_buy: tsb }
+          });
         }
 
         return Promise.resolve();
