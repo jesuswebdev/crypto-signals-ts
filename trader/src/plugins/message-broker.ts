@@ -38,7 +38,8 @@ const messageBrokerPlugin = {
       ) => {
         let orderType: BINANCE_ORDER_TYPES | undefined;
         const requeued =
-          msg.getRoutingKey() === POSITION_EVENTS.POSITION_CLOSED_REQUEUE;
+          msg.getRoutingKey() ===
+          `${EXCHANGE_TYPES.POSITION_EVENTS}_${POSITION_EVENTS.POSITION_CLOSED_REQUEUE}`;
 
         if (requeued) {
           orderType = BINANCE_ORDER_TYPES.MARKET;
