@@ -175,8 +175,13 @@ export const createBuyOrder = async function createBuyOrder(
     .hint('symbol_1')
     .lean();
 
-  const enoughBalance =
-    market.use_main_account && account.available_balance > DEFAULT_BUY_AMOUNT;
+  if (!market.use_main_account) {
+    msg.ack();
+
+    return;
+  }
+
+  const enoughBalance = account.available_balance > DEFAULT_BUY_AMOUNT;
   const positionHasBuyOrder = await positionModel.exists({
     $and: [{ id: position.id }, { 'buy_order.orderId': { $exists: true } }]
   });
@@ -243,9 +248,8 @@ export const createBuyOrder = async function createBuyOrder(
   }
 
   try {
-    server.log(
-      ['debug'],
-      `${position._id} | Attempting to create order: ${JSON.stringify(query)} `
+    console.log(
+      `${position._id} | Attempting to create order: ${JSON.stringify(query)}`
     );
 
     const searchParams = new URLSearchParams(query).toString();
@@ -253,6 +257,8 @@ export const createBuyOrder = async function createBuyOrder(
     const { data, headers } = await binance.post(
       `/api/v3/order?${searchParams}`
     );
+
+    console.log('Order created: ', data);
 
     await checkHeaders(headers, accountModel);
 
@@ -273,7 +279,7 @@ export const createBuyOrder = async function createBuyOrder(
     server.log(['error', 'create-order'], error as object);
   } finally {
     await marketModel.findOneAndUpdate(
-      { $and: [{ symbol: position.symbol }] },
+      { symbol: position.symbol },
       { $set: { trader_lock: false } }
     );
   }
