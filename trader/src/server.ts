@@ -17,6 +17,8 @@ import {
 } from '@jwd-crypto-signals/common';
 import { cancelUnfilledOrders } from './entity/order/controller';
 import { updateMarketLocks } from './entity/market/controller';
+import { positionRoutes } from './entity/position/routes';
+import Joi from 'joi';
 
 let server: Server;
 
@@ -32,6 +34,8 @@ declare module '@hapi/hapi' {
 
 export async function init() {
   server = Hapi.server({ host: '0.0.0.0', port: process.env.PORT || 8080 });
+
+  server.validator(Joi);
 
   server.events.on('log', (event, tags) => {
     if (tags.error) {
@@ -60,7 +64,8 @@ export async function init() {
         binanceApiKey: BINANCE_API_KEY,
         binanceApiSecret: BINANCE_API_SECRET
       }
-    }
+    },
+    { plugin: positionRoutes, routes: { prefix: '/positions' } }
   ]);
 
   setInterval(async () => {
