@@ -16,6 +16,7 @@ import {
   MongoosePlugin
 } from '@jwd-crypto-signals/common';
 import { cancelUnfilledOrders } from './entity/order/controller';
+import { updateMarketLocks } from './entity/market/controller';
 
 let server: Server;
 
@@ -63,7 +64,10 @@ export async function init() {
   ]);
 
   setInterval(async () => {
-    await cancelUnfilledOrders(server);
+    await Promise.all([
+      updateMarketLocks(server),
+      cancelUnfilledOrders(server)
+    ]);
   }, MILLISECONDS.MINUTE);
 
   return server;
