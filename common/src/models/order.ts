@@ -31,7 +31,7 @@ export const createOrderSchema = function createOrderSchema(
   );
 
   schema.index({ orderId: -1, symbol: -1 });
-  schema.index({ status: 1, side: 1, time: -1 });
+  schema.index({ status: 1, time: 1 });
   schema.index({ clientOrderId: 1 });
 
   return schema;
