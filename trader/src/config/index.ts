@@ -40,17 +40,15 @@ const env = validateObjectSchema(
 
 export const MONGODB_URI = `mongodb://${env.MONGODB_SERVICE_HOST}:${env.MONGODB_SERVICE_PORT}/${env.MONGODB_DATABASE}`;
 export const MESSAGE_BROKER_URI = `http://${env.MESSAGE_BROKER_SERVICE_HOST}:${env.MESSAGE_BROKER_SERVICE_PORT}`;
-export const QUOTE_ASSET = process.env.QUOTE_ASSET ?? '';
-export const BUY_ORDER_TYPE = process.env.BUY_ORDER_TYPE ?? '';
-export const SELL_ORDER_TYPE = process.env.SELL_ORDER_TYPE ?? '';
-export const DEFAULT_BUY_AMOUNT = +(process.env.DEFAULT_BUY_AMOUNT ?? 0);
-export const BINANCE_API_URL = process.env.BINANCE_API_URL ?? '';
-export const BINANCE_API_KEY = process.env.BINANCE_API_KEY ?? '';
-export const BINANCE_API_SECRET = process.env.BINANCE_API_SECRET ?? '';
+export const QUOTE_ASSET = env.QUOTE_ASSET ?? '';
+export const BUY_ORDER_TYPE = env.BUY_ORDER_TYPE ?? '';
+export const SELL_ORDER_TYPE = env.SELL_ORDER_TYPE ?? '';
+export const DEFAULT_BUY_AMOUNT = +(env.DEFAULT_BUY_AMOUNT ?? 0);
+export const BINANCE_API_URL = env.BINANCE_API_URL ?? '';
+export const BINANCE_API_KEY = env.BINANCE_API_KEY ?? '';
+export const BINANCE_API_SECRET = env.BINANCE_API_SECRET ?? '';
 export const BINANCE_MINIMUM_ORDER_SIZE = +(
-  process.env.BINANCE_MINIMUM_ORDER_SIZE ?? 0
+  env.BINANCE_MINIMUM_ORDER_SIZE ?? 0
 );
-export const BUY_ORDER_TTL =
-  +(process.env.BUY_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
-export const SELL_ORDER_TTL =
-  +(process.env.SELL_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
+export const BUY_ORDER_TTL = +(env.BUY_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
+export const SELL_ORDER_TTL = +(env.SELL_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
