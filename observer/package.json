@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "update-commons": "npm update @jwd-crypto-signals/common",
     "prebuild": "rimraf lib",
     "build": "tsc",
     "lint": "./node_modules/eslint/bin/eslint.js .",
