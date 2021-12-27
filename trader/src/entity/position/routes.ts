@@ -35,7 +35,7 @@ const positionRoutes = {
       async handler(request: Request, h: ResponseToolkit) {
         try {
           const positionModel: PositionModel =
-            server.plugins.mongoose.connection.model(DATABASE_MODELS.ORDER);
+            server.plugins.mongoose.connection.model(DATABASE_MODELS.POSITION);
           const id = request.params.id as string;
           const position = await positionModel
             .findById(new Types.ObjectId(id))
