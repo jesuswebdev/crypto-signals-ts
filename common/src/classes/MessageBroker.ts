@@ -1,5 +1,5 @@
 import amqplib, { Channel, ConsumeMessage } from 'amqplib';
-import { MILLISECONDS, PublishOptions } from '.';
+import { MILLISECONDS, PublishOptions } from '../';
 
 interface MessageBrokerConstructorOptions {
   uri: string;
