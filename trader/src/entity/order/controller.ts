@@ -256,6 +256,7 @@ export const createSellOrder = async function createSellOrder(
     .lean();
 
   const hasBuyOrder = !!position.buy_order;
+  const hasSellOrder = !!position.sell_order;
 
   if (Date.now() < account?.create_order_after) {
     server.log(
@@ -267,7 +268,7 @@ export const createSellOrder = async function createSellOrder(
     return;
   }
 
-  if (!hasBuyOrder) {
+  if (!hasBuyOrder || hasSellOrder) {
     msg.nack(false, false);
 
     return;
@@ -302,7 +303,7 @@ export const createSellOrder = async function createSellOrder(
 
     if (query.type === 'LIMIT') {
       query.timeInForce = 'GTC';
-      query.price = position.sell_price.toString();
+      query.price = (position.sell_price ?? market.last_price).toString();
     }
 
     let buy_order = await getOrderFromDbOrBinance(
