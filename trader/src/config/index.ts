@@ -9,6 +9,7 @@ dotenv.config({
 });
 import {
   BINANCE_ORDER_TYPES,
+  MILLISECONDS,
   QUOTE_ASSETS,
   validateObjectSchema
 } from '@jwd-crypto-signals/common';
@@ -49,5 +50,7 @@ export const BINANCE_API_SECRET = process.env.BINANCE_API_SECRET ?? '';
 export const BINANCE_MINIMUM_ORDER_SIZE = +(
   process.env.BINANCE_MINIMUM_ORDER_SIZE ?? 0
 );
-export const BUY_ORDER_TTL = +(process.env.BUY_ORDER_TTL ?? 0);
-export const SELL_ORDER_TTL = +(process.env.SELL_ORDER_TTL ?? 0);
+export const BUY_ORDER_TTL =
+  +(process.env.BUY_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
+export const SELL_ORDER_TTL =
+  +(process.env.SELL_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
