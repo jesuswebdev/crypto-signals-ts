@@ -16,8 +16,8 @@ const env = validateObjectSchema(
     MONGODB_DATABASE: joi.string().trim().required(),
     REDIS_SERVICE_HOST: joi.string().trim().hostname().required(),
     REDIS_SERVICE_PORT: joi.number().port().default(6379),
-    RABBITMQ_SERVICE_HOST: joi.string().trim().hostname().required(),
-    RABBITMQ_SERVICE_PORT: joi.number().port().default(5672),
+    MESSAGE_BROKER_SERVICE_HOST: joi.string().trim().hostname().required(),
+    MESSAGE_BROKER_SERVICE_PORT: joi.number().port().default(4222),
     PROCESS_CANDLES_INTERVAL: joi.number().integer().positive().required(),
     CANDLE_INTERVAL: joi
       .string()
@@ -35,7 +35,7 @@ const env = validateObjectSchema(
 
 export const MONGODB_URI = `mongodb://${env.MONGODB_SERVICE_HOST}:${env.MONGODB_SERVICE_PORT}/${env.MONGODB_DATABASE}`;
 export const REDIS_URI = `redis://${env.REDIS_SERVICE_HOST}:${env.REDIS_SERVICE_PORT}`;
-export const MESSAGE_BROKER_URI = `amqp://${env.RABBITMQ_SERVICE_HOST}:${env.RABBITMQ_SERVICE_PORT}`;
+export const MESSAGE_BROKER_URI = `http://${env.MESSAGE_BROKER_SERVICE_HOST}:${env.MESSAGE_BROKER_SERVICE_PORT}`;
 export const PROCESS_CANDLES_INTERVAL =
   +(env.PROCESS_CANDLES_INTERVAL ?? 60) * MILLISECONDS.SECOND;
 export const CANDLE_INTERVAL = env.CANDLE_INTERVAL ?? '';

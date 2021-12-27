@@ -19,8 +19,8 @@ const env = validateObjectSchema(
     MONGODB_SERVICE_HOST: Joi.string().hostname().required(),
     MONGODB_SERVICE_PORT: Joi.number().port().default(27017),
     MONGODB_DATABASE: Joi.string().required(),
-    RABBITMQ_SERVICE_HOST: Joi.string().hostname().required(),
-    RABBITMQ_SERVICE_PORT: Joi.number().port().default(5672),
+    MESSAGE_BROKER_SERVICE_HOST: Joi.string().hostname().required(),
+    MESSAGE_BROKER_SERVICE_PORT: Joi.number().port().default(4222),
     NODE_ENV: Joi.string().default('development'),
     BUY_ORDER_TYPE: Joi.string().allow(BINANCE_ORDER_TYPES).required(),
     SELL_ORDER_TYPE: Joi.string().allow(BINANCE_ORDER_TYPES).required(),
@@ -38,7 +38,7 @@ const env = validateObjectSchema(
 );
 
 export const MONGODB_URI = `mongodb://${env.MONGODB_SERVICE_HOST}:${env.MONGODB_SERVICE_PORT}/${env.MONGODB_DATABASE}`;
-export const MESSAGE_BROKER_URI = `amqp://${env.RABBITMQ_SERVICE_HOST}:${env.RABBITMQ_SERVICE_PORT}`;
+export const MESSAGE_BROKER_URI = `http://${env.MESSAGE_BROKER_SERVICE_HOST}:${env.MESSAGE_BROKER_SERVICE_PORT}`;
 export const QUOTE_ASSET = process.env.QUOTE_ASSET ?? '';
 export const BUY_ORDER_TYPE = process.env.BUY_ORDER_TYPE ?? '';
 export const SELL_ORDER_TYPE = process.env.SELL_ORDER_TYPE ?? '';

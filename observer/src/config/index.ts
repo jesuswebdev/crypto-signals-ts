@@ -11,8 +11,8 @@ const env = validateObjectSchema(
       .string()
       .pattern(new RegExp('^[\\d]{1,2}(d|h|m)$'))
       .required(),
-    RABBITMQ_SERVICE_HOST: joi.string().trim().hostname().required(),
-    RABBITMQ_SERVICE_PORT: joi.number().port().default(5672),
+    MESSAGE_BROKER_SERVICE_HOST: joi.string().trim().hostname().required(),
+    MESSAGE_BROKER_SERVICE_PORT: joi.number().port().default(4222),
     QUOTE_ASSET: joi
       .string()
       .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
@@ -21,5 +21,5 @@ const env = validateObjectSchema(
 );
 
 export const INTERVAL = env.INTERVAL ?? '';
-export const MESSAGE_BROKER_URI = `amqp://${env.RABBITMQ_SERVICE_HOST}:${env.RABBITMQ_SERVICE_PORT}`;
+export const MESSAGE_BROKER_URI = `http://${env.MESSAGE_BROKER_SERVICE_HOST}:${env.MESSAGE_BROKER_SERVICE_PORT}`;
 export const QUOTE_ASSET = env.QUOTE_ASSET ?? '';
