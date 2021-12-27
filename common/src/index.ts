@@ -2,7 +2,7 @@ import { ObjectSchema } from 'joi';
 import { MILLISECONDS } from './constants';
 import { PAIRS as BTC_PAIRS } from './btc_pairs';
 import { PAIRS as BUSD_PAIRS } from './busd_pairs';
-export * from './MessageBroker';
+export * from './classes';
 export * from './constants';
 export * from './interfaces';
 export * from './models';
