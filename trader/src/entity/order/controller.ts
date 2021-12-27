@@ -176,6 +176,9 @@ export const createBuyOrder = async function createBuyOrder(
     .lean();
 
   if (!market.use_main_account) {
+    console.log(
+      `${position._id} | ${position.symbol} | Market disabled for trading.`
+    );
     msg.ack();
 
     return;
