@@ -15,7 +15,8 @@ import {
   BINANCE_ORDER_STATUS,
   nz,
   ListenMessage,
-  POSITION_EVENTS
+  POSITION_EVENTS,
+  MILLISECONDS
 } from '@jwd-crypto-signals/common';
 import {
   BUY_ORDER_TYPE,
@@ -27,62 +28,6 @@ import {
 } from '../../config';
 
 const MAX_REQUESTS = 48; // limit 50
-
-export const setOrderTimeout = function setOrderTimeout(
-  server: Server,
-  paramOrder: OrderAttributes
-) {
-  setTimeout(
-    async () => {
-      const order = await getOrderFromDbOrBinance(server, paramOrder);
-
-      if (!order) {
-        throw new Error('Trying to set order timeout to a non existent order');
-      }
-
-      if (
-        order.status !== BINANCE_ORDER_STATUS.CANCELED &&
-        order.status !== BINANCE_ORDER_STATUS.FILLED
-      ) {
-        if (paramOrder.side === 'BUY') {
-          server.log(
-            ['debug'],
-            `Buy order (${order.symbol}-${order.orderId}) has timed out. Cancelling...`
-          );
-          const cancelQuery = new URLSearchParams({
-            symbol: order.symbol,
-            orderId: order.orderId.toString()
-          }).toString();
-          await server.plugins.binance.client.delete(
-            `/api/v3/order?${cancelQuery}`
-          );
-        } else {
-          server.log(
-            ['debug'],
-            `Sell order (${order.symbol}-${order.orderId}) has timed out. Creating new market order instead.`
-          );
-          const positionModel: PositionModel =
-            server.plugins.mongoose.connection.model(DATABASE_MODELS.POSITION);
-
-          const foundPosition: LeanPositionDocument = await positionModel
-            .findOne({
-              $and: [
-                { symbol: paramOrder.symbol },
-                { 'buy_order.orderId': paramOrder.orderId }
-              ]
-            })
-            .lean();
-
-          server.plugins.broker.publish(
-            POSITION_EVENTS.POSITION_CLOSED_REQUEUE,
-            foundPosition
-          );
-        }
-      }
-    },
-    paramOrder.side === 'BUY' ? BUY_ORDER_TTL : SELL_ORDER_TTL
-  );
-};
 
 export const checkHeaders = async function checkHeaders(
   headers: Record<string, string>,
@@ -270,10 +215,6 @@ export const createBuyOrder = async function createBuyOrder(
         { id: position.id },
         { $set: { buy_order: data } }
       );
-
-      if (BUY_ORDER_TYPE === BINANCE_ORDER_TYPES.LIMIT && BUY_ORDER_TTL) {
-        setOrderTimeout(server, data as OrderAttributes);
-      }
     }
 
     msg.ack();
@@ -378,9 +319,8 @@ export const createSellOrder = async function createSellOrder(
       buy_order.status !== BINANCE_ORDER_STATUS.CANCELED &&
       buy_order.status !== BINANCE_ORDER_STATUS.FILLED
     ) {
-      server.log(
-        ['debug'],
-        `${position.id} | Order (${buy_order.symbol}-${buy_order.orderId}) has not been filled. Cancelling...`
+      console.log(
+        `${position._id} | Order (${buy_order.symbol}-${buy_order.orderId}) has not been filled. Cancelling...`
       );
       //cancel order and refetch from db
       const cancel_query = new URLSearchParams({
@@ -419,8 +359,7 @@ export const createSellOrder = async function createSellOrder(
       position.symbol
     ).toString();
 
-    server.log(
-      ['debug'],
+    console.log(
       `${position._id} | Attempting to create order: ${JSON.stringify(query)}`
     );
 
@@ -432,8 +371,7 @@ export const createSellOrder = async function createSellOrder(
     await checkHeaders(headers, accountModel);
 
     if (data?.orderId) {
-      server.log(
-        ['debug'],
+      console.log(
         `${position._id} | Request completed. Order created: ${position.symbol}-${data.orderId}`
       );
 
@@ -441,10 +379,6 @@ export const createSellOrder = async function createSellOrder(
         { id: position.id },
         { $set: { sell_order: data } }
       );
-
-      if (query.type === 'LIMIT' && SELL_ORDER_TTL) {
-        setOrderTimeout(server, data as OrderAttributes);
-      }
     }
 
     msg.ack();
@@ -456,5 +390,73 @@ export const createSellOrder = async function createSellOrder(
       { symbol: position.symbol },
       { $set: { trader_lock: false } }
     );
+  }
+};
+
+export const cancelUnfilledOrders = async function cancelUnfilledOrders(
+  server: Server
+) {
+  const positionModel: PositionModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.POSITION
+  );
+  const orderModel: OrderModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.ORDER
+  );
+
+  const orders: LeanOrderDocument[] = await orderModel
+    .find({
+      $and: [
+        {
+          status: {
+            $nin: [BINANCE_ORDER_STATUS.FILLED, BINANCE_ORDER_STATUS.CANCELED]
+          }
+        },
+        { time: { $gt: Date.now() - MILLISECONDS.HOUR } }
+      ]
+    })
+    .hint('status_1_time_1')
+    .lean();
+
+  const filteredOrders = orders.filter(order => {
+    const shouldCancelBuyOrder =
+      order.side === 'BUY' &&
+      order.type === BINANCE_ORDER_TYPES.LIMIT &&
+      Date.now() > order.eventTime + BUY_ORDER_TTL;
+    const shouldCancelSellOrder =
+      order.side === 'SELL' &&
+      order.type === BINANCE_ORDER_TYPES.LIMIT &&
+      Date.now() > order.eventTime + SELL_ORDER_TTL;
+
+    return shouldCancelBuyOrder || shouldCancelSellOrder;
+  });
+
+  if (filteredOrders.length) {
+    for (const order of filteredOrders) {
+      if (!(order.clientOrderId ?? '').match(/web_/)) {
+        if (order.side === 'BUY') {
+          const tradeQuery = new URLSearchParams({
+            symbol: order.symbol,
+            orderId: order.orderId.toString()
+          }).toString();
+
+          try {
+            await server.plugins.binance.client.delete(
+              `/api/v3/order?${tradeQuery}`
+            );
+          } catch (error: unknown) {
+            server.log(['error'], error as object);
+          }
+        } else {
+          const position = await positionModel
+            .findOne({ 'sell_order.orderId': order.orderId })
+            .lean();
+
+          server.plugins.broker.publish(
+            POSITION_EVENTS.POSITION_CLOSED_REQUEUE,
+            position
+          );
+        }
+      }
+    }
   }
 };

@@ -12,8 +12,10 @@ import {
   BinancePlugin,
   binancePlugin,
   MessageBrokerPlugin,
+  MILLISECONDS,
   MongoosePlugin
 } from '@jwd-crypto-signals/common';
+import { cancelUnfilledOrders } from './entity/order/controller';
 
 let server: Server;
 
@@ -59,6 +61,10 @@ export async function init() {
       }
     }
   ]);
+
+  setInterval(async () => {
+    await cancelUnfilledOrders(server);
+  }, MILLISECONDS.MINUTE);
 
   return server;
 }
