@@ -1,0 +1,17 @@
+{
+  "name": "crypto-signals",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "update:account-observer": "npm run update-commons --prefix ./account-observer && npm run docker:build --prefix ./account-observer && npm run docker:push --prefix ./account-observer",
+    "update:candles-processor": "npm run update-commons --prefix ./candles-processor && npm run docker:build --prefix ./candles-processor && npm run docker:push --prefix ./candles-processor",
+    "update:observer": "npm run update-commons --prefix ./observer && npm run docker:build --prefix ./observer && npm run docker:push --prefix ./observer",
+    "update:positions-processor": "npm run update-commons --prefix ./positions-processor && npm run docker:build --prefix ./positions-processor && npm run docker:push --prefix ./positions-processor",
+    "update:signals-processor": "npm run update-commons --prefix ./signals-processor && npm run docker:build --prefix ./signals-processor && npm run docker:push --prefix ./signals-processor",
+    "update:trader": "npm run update-commons --prefix ./trader && npm run docker:build --prefix ./trader && npm run docker:push --prefix ./trader",
+    "update:all": "npm run update:account-observer && npm run update:candles-processor && npm run update:positions-processor && npm run update:signals-processor && npm run update:observer && npm run update:trader"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
