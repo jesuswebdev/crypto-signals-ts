@@ -256,7 +256,6 @@ export const createSellOrder = async function createSellOrder(
     .lean();
 
   const hasBuyOrder = !!position.buy_order;
-  const hasSellOrder = !!position.sell_order;
 
   if (Date.now() < account?.create_order_after) {
     server.log(
@@ -268,7 +267,7 @@ export const createSellOrder = async function createSellOrder(
     return;
   }
 
-  if (!hasBuyOrder || hasSellOrder) {
+  if (!hasBuyOrder) {
     msg.nack(false, false);
 
     return;
@@ -431,7 +430,7 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
     return shouldCancelBuyOrder || shouldCancelSellOrder;
   });
 
-  if (filteredOrders.length) {
+  if (filteredOrders.length > 0) {
     for (const order of filteredOrders) {
       if (!(order.clientOrderId ?? '').match(/web_/)) {
         if (order.side === 'BUY') {
