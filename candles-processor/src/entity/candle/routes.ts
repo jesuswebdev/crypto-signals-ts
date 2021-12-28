@@ -31,18 +31,20 @@ const candlesRoutes = {
             );
 
           if (!getBooleanValue(force)) {
-            const count = await candleModel.countDocuments({
-              $and: [
-                { symbol },
-                {
-                  open_time: {
-                    $gte:
-                      Date.now() -
-                      getTimeDiff(160, request.server.app.CANDLE_INTERVAL)
+            const count = await candleModel
+              .countDocuments({
+                $and: [
+                  { symbol },
+                  {
+                    open_time: {
+                      $gte:
+                        Date.now() -
+                        getTimeDiff(160, request.server.app.CANDLE_INTERVAL)
+                    }
                   }
-                }
-              ]
-            });
+                ]
+              })
+              .hint('symbol_1_open_time_1');
 
             if (count >= 150) {
               return h.response();

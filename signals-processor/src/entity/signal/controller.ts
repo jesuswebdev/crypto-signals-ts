@@ -80,12 +80,14 @@ export const processSignals = async function processSignals(
     DATABASE_MODELS.POSITION
   );
 
-  const count = await candleModel.countDocuments({
-    $and: [
-      { symbol },
-      { open_time: { $gte: Date.now() - getTimeDiff(155, interval) } }
-    ]
-  });
+  const count = await candleModel
+    .countDocuments({
+      $and: [
+        { symbol },
+        { open_time: { $gte: Date.now() - getTimeDiff(155, interval) } }
+      ]
+    })
+    .hint('symbol_1_open_time_1');
 
   if (count < 150) {
     await removeLock();
