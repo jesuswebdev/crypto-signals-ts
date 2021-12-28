@@ -110,5 +110,10 @@ export const PAIRS = [
   { symbol: 'STXBUSD', priceTickSize: 0.001, stepSize: 0.1 },
   { symbol: 'FETBUSD', priceTickSize: 0.0001, stepSize: 1 },
   { symbol: 'LSKBUSD', priceTickSize: 0.001, stepSize: 0.1 },
-  { symbol: 'DENTBUSD', priceTickSize: 0.000001, stepSize: 1.0 }
+  { symbol: 'DENTBUSD', priceTickSize: 0.000001, stepSize: 1 },
+  { symbol: 'SCRTBUSD', priceTickSize: 0.001, stepSize: 0.1 },
+  { symbol: 'CELOBUSD', priceTickSize: 0.001, stepSize: 0.1 },
+  { symbol: 'HIVEBUSD', priceTickSize: 0.0001, stepSize: 1 },
+  { symbol: 'ANKRBUSD', priceTickSize: 0.00001, stepSize: 0.1 },
+  { symbol: 'AMPBUSD', priceTickSize: 0.00001, stepSize: 1 }
 ];
