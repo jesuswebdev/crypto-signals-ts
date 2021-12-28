@@ -433,20 +433,20 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
   if (filteredOrders.length > 0) {
     for (const order of filteredOrders) {
       if (!(order.clientOrderId ?? '').match(/web_/)) {
-        if (order.side === 'BUY') {
-          const tradeQuery = new URLSearchParams({
-            symbol: order.symbol,
-            orderId: order.orderId.toString()
-          }).toString();
+        const tradeQuery = new URLSearchParams({
+          symbol: order.symbol,
+          orderId: order.orderId.toString()
+        }).toString();
 
-          try {
-            await server.plugins.binance.client.delete(
-              `/api/v3/order?${tradeQuery}`
-            );
-          } catch (error: unknown) {
-            server.log(['error'], error as object);
-          }
-        } else {
+        try {
+          await server.plugins.binance.client.delete(
+            `/api/v3/order?${tradeQuery}`
+          );
+        } catch (error: unknown) {
+          server.log(['error'], error as object);
+        }
+
+        if (order.side === 'SELL') {
           const position = await positionModel
             .findOne({ 'sell_order.orderId': order.orderId })
             .lean();
