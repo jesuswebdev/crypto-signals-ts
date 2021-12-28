@@ -83,7 +83,8 @@ export const processCandleTick = async function processCandleTick(
           updateOne: {
             filter: { id: value.id },
             update: { $set: value },
-            upsert: true
+            upsert: true,
+            hint: 'id_1'
           }
         })),
         { ordered: false }
@@ -175,7 +176,8 @@ export const processCandles = async function processCandles(
         updateOne: {
           filter: { id: value.id },
           update: { $set: value },
-          upsert: true
+          upsert: true,
+          hint: 'id_1'
         }
       })),
       { ordered: false }
