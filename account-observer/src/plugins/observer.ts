@@ -58,12 +58,14 @@ class AccountObserver {
 
   async createListenKey(): Promise<string | undefined> {
     const { data } = await this.binance.post('/api/v3/userDataStream');
+
     return data?.listenKey;
   }
 
   async listenKeyKeepAlive(listenKey: string) {
     const query = new URLSearchParams({ listenKey }).toString();
     await this.binance.put(`/api/v3/userDataStream?${query}`);
+
     return null;
   }
 
@@ -72,6 +74,7 @@ class AccountObserver {
     const asset = (account.balances as { asset: string; free: string }[]).find(
       item => item.asset === quote_asset
     );
+
     return nz(+(asset?.free ?? 0));
   }
 
@@ -119,98 +122,91 @@ class AccountObserver {
   }
 
   async init() {
-    try {
-      await this.updateBalance();
-      let spot_account_listen_key = await this.getListenKey();
+    await this.updateBalance();
+    const spot_account_listen_key = await this.getListenKey();
 
-      this.client = new ws(
-        `wss://stream.binance.com:9443/stream?streams=${spot_account_listen_key}`
+    this.client = new ws(
+      `wss://stream.binance.com:9443/stream?streams=${spot_account_listen_key}`
+    );
+
+    this.client.on('open', () => {
+      console.log(
+        `${new Date().toISOString()} | Spot Account Observer | Connection open.`
       );
+    });
 
-      this.client.on('open', () => {
-        console.log(
-          `${new Date().toISOString()} | Spot Account Observer | Connection open.`
+    this.client.on('ping', () => {
+      this.client?.pong();
+    });
+
+    this.client.on('message', async (data: unknown) => {
+      const parsedData = JSON.parse(data as string);
+      const message = parsedData.data;
+
+      if (message.e === 'executionReport') {
+        const parsedOrder = parseOrder(message);
+        const validPair = this.allowed_pairs.some(
+          v => v === parsedOrder.symbol
         );
-      });
 
-      this.client.on('ping', () => {
-        this.client?.pong();
-      });
-
-      this.client.on('message', async (data: unknown) => {
-        try {
-          const parsedData = JSON.parse(data as string);
-          const message = parsedData.data;
-          if (message.e === 'executionReport') {
-            const parsedOrder = parseOrder(message);
-            const validPair = this.allowed_pairs.some(
-              v => v === parsedOrder.symbol
-            );
-
-            if (parsedOrder.orderId && validPair) {
-              try {
-                await this.database
-                  .model<OrderModel>(DATABASE_MODELS.ORDER)
-                  .findOneAndUpdate(
-                    {
-                      $and: [
-                        { orderId: { $eq: parsedOrder.orderId } },
-                        { symbol: { $eq: parsedOrder.symbol } }
-                      ]
-                    },
-                    { $set: parsedOrder },
-                    { upsert: true }
-                  );
-              } catch (error) {
-                console.error(error);
-                await this.database
-                  .model<OrderModel>(DATABASE_MODELS.ORDER)
-                  .findOneAndUpdate(
-                    {
-                      $and: [
-                        { orderId: { $eq: parsedOrder.orderId } },
-                        { symbol: { $eq: parsedOrder.symbol } }
-                      ]
-                    },
-                    { $set: parsedOrder },
-                    { upsert: true }
-                  );
-              }
-            }
+        if (parsedOrder.orderId && validPair) {
+          try {
+            await this.database
+              .model<OrderModel>(DATABASE_MODELS.ORDER)
+              .findOneAndUpdate(
+                {
+                  $and: [
+                    { orderId: { $eq: parsedOrder.orderId } },
+                    { symbol: { $eq: parsedOrder.symbol } }
+                  ]
+                },
+                { $set: parsedOrder },
+                { upsert: true }
+              );
+          } catch (error) {
+            console.error(error);
+            await this.database
+              .model<OrderModel>(DATABASE_MODELS.ORDER)
+              .findOneAndUpdate(
+                {
+                  $and: [
+                    { orderId: { $eq: parsedOrder.orderId } },
+                    { symbol: { $eq: parsedOrder.symbol } }
+                  ]
+                },
+                { $set: parsedOrder },
+                { upsert: true }
+              );
           }
-          if (message.e === 'outboundAccountPosition') {
-            const update = parseAccountUpdate(message, QUOTE_ASSET ?? '');
-            if (update) {
-              await this.database
-                .model(DATABASE_MODELS.ACCOUNT)
-                .findOneAndUpdate(
-                  { id: ENVIRONMENT },
-                  { $set: { available_balance: update } }
-                );
-            }
-          }
-        } catch (error) {
-          throw error;
         }
-      });
+      }
 
-      this.client.on('error', () => {
-        console.log(
-          `${new Date().toISOString()} | Spot Orders Observer | ERROR`
-        );
-        process.exit();
-      });
+      if (message.e === 'outboundAccountPosition') {
+        const update = parseAccountUpdate(message, QUOTE_ASSET ?? '');
 
-      this.client.on('close', async (...args) => {
-        console.log(
-          `${new Date().toISOString()} | Spot Orders Observer Stream closed.`
-        );
-        console.log(args);
-        await this.init();
-      });
-    } catch (error) {
-      throw error;
-    }
+        if (update) {
+          await this.database
+            .model(DATABASE_MODELS.ACCOUNT)
+            .findOneAndUpdate(
+              { id: ENVIRONMENT },
+              { $set: { available_balance: update } }
+            );
+        }
+      }
+    });
+
+    this.client.on('error', () => {
+      console.log(`${new Date().toISOString()} | Spot Orders Observer | ERROR`);
+      process.exit();
+    });
+
+    this.client.on('close', async (...args) => {
+      console.log(
+        `${new Date().toISOString()} | Spot Orders Observer Stream closed.`
+      );
+      console.log(args);
+      await this.init();
+    });
   }
 }
 
