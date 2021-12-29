@@ -26,6 +26,7 @@ import {
   SELL_ORDER_TYPE,
   QUOTE_ASSET
 } from '../../config';
+import { parseOrder } from '../../utils';
 
 const MAX_REQUESTS = 48; // limit 50
 
@@ -51,21 +52,19 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
     throw new Error('Order is not defined.');
   }
 
-  const orderModel: OrderModel =
-    server.plugins.mongoose.connection.model('Order');
-  let order: LeanOrderDocument | undefined;
+  const orderModel: OrderModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.ORDER
+  );
+  let order = await orderModel
+    .findOne({ clientOrderId: buy_order.clientOrderId })
+    .hint('clientOrderId_1')
+    .lean();
 
-  try {
-    order = await orderModel
-      .findOne({ clientOrderId: buy_order.clientOrderId })
-      .hint('clientOrderId_1')
-      .lean();
+  if (!order) {
+    console.log(
+      'Order does not exist in database... Attempting to fetch from Binance...'
+    );
 
-    if (!order) {
-      throw new Error('Order does not exist in database.');
-    }
-  } catch (error: unknown) {
-    server.log(['error'], error as object);
     const query = new URLSearchParams({
       orderId: buy_order.orderId.toString(),
       symbol: buy_order.symbol
@@ -76,11 +75,14 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
         `/api/v3/order?${query}`
       );
 
-      if (data?.orderId) {
+      if (!data?.orderId) {
+        console.log('Order does not exist in Binance.');
+      } else {
         order = data;
+        await orderModel.create(parseOrder(data));
       }
-    } catch (error_2: unknown) {
-      server.log(['error'], error_2 as object);
+    } catch (error: unknown) {
+      server.log(['error'], error as object);
     }
   }
 
@@ -253,6 +255,7 @@ export const createSellOrder = async function createSellOrder(
 
   const account: LeanAccountDocument = await accountModel
     .findOne({ id: process.env.NODE_ENV })
+    .hint('id_1')
     .lean();
 
   const hasBuyOrder = !!position.buy_order;
@@ -351,7 +354,7 @@ export const createSellOrder = async function createSellOrder(
 
     if (quantity_to_sell === 0) {
       msg.nack(false, false);
-      throw new Error(`Buy order for position ${position._id} was not filled.`);
+      throw new Error(`Buy order for position '${position._id}' was not filled.`);
     }
 
     query.quantity = toSymbolStepPrecision(
@@ -449,6 +452,7 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
         if (order.side === 'SELL') {
           const position = await positionModel
             .findOne({ 'sell_order.orderId': order.orderId })
+            .hint('sell_order.orderId_1')
             .lean();
 
           server.plugins.broker.publish(
