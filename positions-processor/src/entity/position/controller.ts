@@ -7,6 +7,7 @@ import {
   POSITION_STATUS,
   toSymbolPrecision
 } from '@jwd-crypto-signals/common';
+import { Types } from 'mongoose';
 import { applyStrategy } from '../../strategy';
 
 export const processOpenPositions = async function processOpenPositions(
@@ -57,9 +58,12 @@ export const processOpenPositions = async function processOpenPositions(
           });
         }
       } catch (error) {
-        await positionModel.findByIdAndUpdate(position._id, {
-          $set: { status: POSITION_STATUS.OPEN }
-        });
+        await positionModel
+          .updateOne(
+            { _id: new Types.ObjectId(position._id) },
+            { $set: { status: POSITION_STATUS.OPEN } }
+          )
+          .hint('_id_');
         throw error;
       }
     }

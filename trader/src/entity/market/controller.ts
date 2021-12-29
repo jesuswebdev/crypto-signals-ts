@@ -29,10 +29,12 @@ export const updateMarketLocks = async function updateMarketLocks(
       .lean();
 
     if (locked_markets.length > 0) {
-      await marketModel.updateMany(
-        { symbol: { $in: locked_markets.map(m => m.symbol) } },
-        { $set: { trader_lock: false } }
-      );
+      await marketModel
+        .updateMany(
+          { symbol: { $in: locked_markets.map(m => m.symbol) } },
+          { $set: { trader_lock: false } }
+        )
+        .hint('symbol_1');
     }
   } catch (error: unknown) {
     server.log(['error'], error as object);

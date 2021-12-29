@@ -8,6 +8,7 @@ import {
   toSymbolPrecision
 } from '@jwd-crypto-signals/common';
 import { Server } from '@hapi/hapi';
+import { Types } from 'mongoose';
 
 export const createPosition = async function createPosition(
   server: Server,
@@ -42,9 +43,12 @@ export const createPosition = async function createPosition(
     broadcast: signal.broadcast
   });
 
-  await signalModel.findByIdAndUpdate(signal._id, {
-    $set: { position: createdPosition._id }
-  });
+  await signalModel
+    .updateOne(
+      { _id: new Types.ObjectId(signal._id) },
+      { $set: { position: createdPosition._id } }
+    )
+    .hint('_id_');
 
   return createdPosition;
 };

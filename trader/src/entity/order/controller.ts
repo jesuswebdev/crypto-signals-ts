@@ -35,10 +35,12 @@ export const checkHeaders = async function checkHeaders(
   model: AccountModel
 ) {
   if (+headers['x-mbx-order-count-10s'] >= MAX_REQUESTS) {
-    await model.findOneAndUpdate(
-      { id: process.env.NODE_ENV },
-      { $set: { create_order_after: Date.now() + 1e4 } }
-    );
+    await model
+      .updateOne(
+        { id: process.env.NODE_ENV },
+        { $set: { create_order_after: Date.now() + 1e4 } }
+      )
+      .hint('id_1');
   }
 
   return;
@@ -173,10 +175,12 @@ export const createBuyOrder = async function createBuyOrder(
     return;
   }
 
-  await marketModel.findOneAndUpdate(
-    { symbol: position.symbol },
-    { $set: { trader_lock: true, last_trader_lock_update: Date.now() } }
-  );
+  await marketModel
+    .updateOne(
+      { symbol: position.symbol },
+      { $set: { trader_lock: true, last_trader_lock_update: Date.now() } }
+    )
+    .hint('symbol_1');
 
   const query: Record<string, string> = {
     type: orderType ?? BUY_ORDER_TYPE,
@@ -213,10 +217,9 @@ export const createBuyOrder = async function createBuyOrder(
     await checkHeaders(headers, accountModel);
 
     if (data?.orderId) {
-      await positionModel.findOneAndUpdate(
-        { id: position.id },
-        { $set: { buy_order: data } }
-      );
+      await positionModel
+        .updateOne({ id: position.id }, { $set: { buy_order: data } })
+        .hint('id_1');
     }
 
     msg.ack();
@@ -224,10 +227,9 @@ export const createBuyOrder = async function createBuyOrder(
     msg.nack();
     server.log(['error', 'create-order'], error as object);
   } finally {
-    await marketModel.findOneAndUpdate(
-      { symbol: position.symbol },
-      { $set: { trader_lock: false } }
-    );
+    await marketModel
+      .updateOne({ symbol: position.symbol }, { $set: { trader_lock: false } })
+      .hint('symbol_1');
   }
 };
 
@@ -291,10 +293,12 @@ export const createSellOrder = async function createSellOrder(
     return;
   }
 
-  await marketModel.findOneAndUpdate(
-    { symbol: position.symbol },
-    { $set: { trader_lock: true, last_trader_lock_update: Date.now() } }
-  );
+  await marketModel
+    .updateOne(
+      { symbol: position.symbol },
+      { $set: { trader_lock: true, last_trader_lock_update: Date.now() } }
+    )
+    .hint('symbol_1');
 
   try {
     const query: Record<string, string> = {
@@ -354,7 +358,9 @@ export const createSellOrder = async function createSellOrder(
 
     if (quantity_to_sell === 0) {
       msg.nack(false, false);
-      throw new Error(`Buy order for position '${position._id}' was not filled.`);
+      throw new Error(
+        `Buy order for position '${position._id}' was not filled.`
+      );
     }
 
     query.quantity = toSymbolStepPrecision(
@@ -378,10 +384,9 @@ export const createSellOrder = async function createSellOrder(
         `${position._id} | Request completed. Order created: ${position.symbol}-${data.orderId}`
       );
 
-      await positionModel.findOneAndUpdate(
-        { id: position.id },
-        { $set: { sell_order: data } }
-      );
+      await positionModel
+        .updateOne({ id: position.id }, { $set: { sell_order: data } })
+        .hint('id_1');
     }
 
     msg.ack();
@@ -389,10 +394,9 @@ export const createSellOrder = async function createSellOrder(
     msg.nack();
     server.log(['error'], error as object);
   } finally {
-    await marketModel.findOneAndUpdate(
-      { symbol: position.symbol },
-      { $set: { trader_lock: false } }
-    );
+    await marketModel
+      .updateOne({ symbol: position.symbol }, { $set: { trader_lock: false } })
+      .hint('symbol_1');
   }
 };
 

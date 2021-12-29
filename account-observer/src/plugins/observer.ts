@@ -43,6 +43,7 @@ class AccountObserver {
       const account: LeanAccountDocument = await this.database
         .model<AccountModel>(DATABASE_MODELS.ACCOUNT)
         .findOne({ id: ENVIRONMENT })
+        .hint('id_1')
         .select({ spot_account_listen_key: true })
         .lean();
 
@@ -86,13 +87,15 @@ class AccountObserver {
         { id: ENVIRONMENT },
         { $set: { available_balance } },
         { upsert: true }
-      );
+      )
+      .hint('id_1');
   }
 
   async getListenKey() {
     const account: LeanAccountDocument = await this.database
       .model(DATABASE_MODELS.ACCOUNT)
       .findOne({ id: ENVIRONMENT })
+      .hint('id_1')
       .select({ spot_account_listen_key: true })
       .lean();
     let spot_account_listen_key: string | undefined;
@@ -114,7 +117,8 @@ class AccountObserver {
 
     await this.database
       .model(DATABASE_MODELS.ACCOUNT)
-      .updateOne({ id: ENVIRONMENT }, { $set: { spot_account_listen_key } });
+      .updateOne({ id: ENVIRONMENT }, { $set: { spot_account_listen_key } })
+      .hint('id_1');
 
     this.startListenKeyKeepAliveInterval();
 
@@ -153,7 +157,7 @@ class AccountObserver {
           try {
             await this.database
               .model<OrderModel>(DATABASE_MODELS.ORDER)
-              .findOneAndUpdate(
+              .updateOne(
                 {
                   $and: [
                     { orderId: { $eq: parsedOrder.orderId } },
@@ -162,12 +166,13 @@ class AccountObserver {
                 },
                 { $set: parsedOrder },
                 { upsert: true }
-              );
+              )
+              .hint('orderId_-1_symbol_-1');
           } catch (error) {
             console.error(error);
             await this.database
               .model<OrderModel>(DATABASE_MODELS.ORDER)
-              .findOneAndUpdate(
+              .updateOne(
                 {
                   $and: [
                     { orderId: { $eq: parsedOrder.orderId } },
@@ -176,7 +181,8 @@ class AccountObserver {
                 },
                 { $set: parsedOrder },
                 { upsert: true }
-              );
+              )
+              .hint('orderId_-1_symbol_-1');
           }
         }
       }
@@ -187,10 +193,11 @@ class AccountObserver {
         if (update) {
           await this.database
             .model(DATABASE_MODELS.ACCOUNT)
-            .findOneAndUpdate(
+            .updateOne(
               { id: ENVIRONMENT },
               { $set: { available_balance: update } }
-            );
+            )
+            .hint('id_1');
         }
       }
     });

@@ -20,6 +20,7 @@ import {
   toSymbolPrecision,
   MongoError
 } from '@jwd-crypto-signals/common';
+import { Types } from 'mongoose';
 import { applyStrategy } from '../../strategy';
 import { getPlainCandle } from '../../utils';
 import { createPosition } from '../position/controller';
@@ -174,7 +175,11 @@ export const processSignals = async function processSignals(
     async (open_signal, index) => {
       try {
         if (index > 0) {
-          return signalModel.findByIdAndRemove(open_signal._id);
+          return signalModel
+            .deleteOne({
+              _id: new Types.ObjectId(open_signal._id)
+            })
+            .hint('_id_');
         }
 
         const market: LeanMarketDocument = await marketModel
@@ -234,9 +239,12 @@ export const processSignals = async function processSignals(
         );
 
         if (tsb < open_signal.trailing_stop_buy) {
-          await signalModel.findByIdAndUpdate(open_signal._id, {
-            $set: { trailing_stop_buy: tsb }
-          });
+          await signalModel
+            .updateOne(
+              { _id: new Types.ObjectId(open_signal._id) },
+              { $set: { trailing_stop_buy: tsb } }
+            )
+            .hint('_id_');
         }
 
         return Promise.resolve();

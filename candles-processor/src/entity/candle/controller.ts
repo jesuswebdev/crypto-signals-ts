@@ -90,11 +90,13 @@ export const processCandleTick = async function processCandleTick(
         { ordered: false }
       );
 
-      await marketModel.updateOne(
-        { symbol: candle.symbol },
-        { $set: { last_price: candle.close_price } },
-        { upsert: true }
-      );
+      await marketModel
+        .updateOne(
+          { symbol: candle.symbol },
+          { $set: { last_price: candle.close_price } },
+          { upsert: true }
+        )
+        .hint('symbol_1');
 
       await redis.del(redisKeys.candlesPersistLock);
 
@@ -201,13 +203,15 @@ export const fillCandlesData = async function fillCandlesData(server: Server) {
     const interval = server.app.CANDLE_INTERVAL;
     console.log('Current pair: ', pair.symbol);
 
-    const count = await candleModel.count({
-      $and: [
-        { symbol },
-        { open_time: { $gte: Date.now() - getTimeDiff(155, interval) } },
-        { open_time: { $lte: Date.now() } }
-      ]
-    });
+    const count = await candleModel
+      .countDocuments({
+        $and: [
+          { symbol },
+          { open_time: { $gte: Date.now() - getTimeDiff(155, interval) } },
+          { open_time: { $lte: Date.now() } }
+        ]
+      })
+      .hint('symbol_1_open_time_1');
 
     if (count < 150) {
       const query = new URLSearchParams({

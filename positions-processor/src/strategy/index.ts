@@ -12,6 +12,7 @@ import {
   POSITION_STATUS,
   toSymbolPrecision
 } from '@jwd-crypto-signals/common';
+import { Types } from 'mongoose';
 
 export const applyStrategy = async function applyStrategy(
   server: Server,
@@ -79,11 +80,16 @@ export const applyStrategy = async function applyStrategy(
         candle.atr_stop !== position.stop_loss &&
         candle.atr_stop < candle.open_price
       ) {
-        await positionModel.findByIdAndUpdate(position._id, {
-          $set: {
-            stop_loss: toSymbolPrecision(candle.atr_stop, candle.symbol)
-          }
-        });
+        await positionModel
+          .updateOne(
+            { _id: new Types.ObjectId(position._id) },
+            {
+              $set: {
+                stop_loss: toSymbolPrecision(candle.atr_stop, candle.symbol)
+              }
+            }
+          )
+          .hint('_id_');
       }
 
       const downwards_ema_slope =
@@ -100,9 +106,12 @@ export const applyStrategy = async function applyStrategy(
         (downwards_ema_slope || downwards_trend);
 
       if (sell_condition && !position.stop_loss_trigger_time) {
-        await positionModel.findByIdAndUpdate(position._id, {
-          $set: { stop_loss_trigger_time: Date.now() }
-        });
+        await positionModel
+          .updateOne(
+            { _id: new Types.ObjectId(position._id) },
+            { $set: { stop_loss_trigger_time: Date.now() } }
+          )
+          .hint('_id_');
       }
 
       const five_minutes_passed =
@@ -114,9 +123,12 @@ export const applyStrategy = async function applyStrategy(
         !sell_condition &&
         position.stop_loss_trigger_time
       ) {
-        await positionModel.findByIdAndUpdate(position._id, {
-          $unset: { stop_loss_trigger_time: true }
-        });
+        await positionModel
+          .updateOne(
+            { _id: new Types.ObjectId(position._id) },
+            { $unset: { stop_loss_trigger_time: true } }
+          )
+          .hint('_id_');
       }
 
       if (
