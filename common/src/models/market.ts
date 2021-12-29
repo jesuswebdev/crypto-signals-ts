@@ -10,8 +10,7 @@ export const createMarketSchema = function createMarketSchema(
       symbol: {
         type: String,
         required: true,
-        validate: (value: string) => PAIRS.map(p => p.symbol).includes(value),
-        index: true
+        validate: (value: string) => PAIRS.map(p => p.symbol).includes(value)
       },
       last_price: { type: Number, validate: numberSchemaValidation },
       last_trader_lock_update: { type: Number },
@@ -22,6 +21,7 @@ export const createMarketSchema = function createMarketSchema(
     { timestamps: true, ...options }
   );
 
+  schema.index({ symbol: 1 }, { unique: true });
   schema.index({ trader_lock: 1, last_trader_lock_update: 1 });
 
   return schema;

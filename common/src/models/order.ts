@@ -30,7 +30,7 @@ export const createOrderSchema = function createOrderSchema(
     { timestamps: true, ...options }
   );
 
-  schema.index({ orderId: -1, symbol: -1 });
+  schema.index({ orderId: -1, symbol: -1 }, { unique: true });
   schema.index({ status: 1, time: 1 });
   schema.index({ clientOrderId: 1 });
 

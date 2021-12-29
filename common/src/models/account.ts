@@ -18,7 +18,7 @@ export const createAccountSchema = function createAccountSchema(
     { timestamps: true, ...options }
   );
 
-  schema.index({ id: 1 });
+  schema.index({ id: 1 }, { unique: true });
 
   return schema;
 };
