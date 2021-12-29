@@ -81,7 +81,13 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
         console.log('Order does not exist in Binance.');
       } else {
         order = data;
-        await orderModel.create(parseOrder(data));
+        await orderModel
+          .updateOne(
+            { $and: [{ symbol: buy_order.symbol }, { orderId: data.orderId }] },
+            { $set: parseOrder(data) },
+            { upsert: true }
+          )
+          .hint('orderId_-1_symbol_-1');
       }
     } catch (error: unknown) {
       server.log(['error'], error as object);
