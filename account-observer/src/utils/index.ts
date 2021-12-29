@@ -34,8 +34,10 @@ export const parseAccountUpdate = function parseAccountUpdate(
   quote_asset: string
 ) {
   const [asset] = (update.B || []).filter(b => (b || {}).a === quote_asset);
+
   if (asset) {
     return +asset.f;
   }
+
   return null;
 };
