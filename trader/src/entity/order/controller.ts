@@ -457,6 +457,7 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
           );
         } catch (error: unknown) {
           server.log(['error'], error as object);
+          continue;
         }
 
         if (order.side === 'SELL') {
