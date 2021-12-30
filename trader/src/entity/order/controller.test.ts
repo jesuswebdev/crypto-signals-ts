@@ -24,4 +24,6 @@ describe('Order Controller tests', () => {
     // does not find order in database nor binance
 
   });
+
+  // cancel unfilled orders should skip order handling if the binance query throws error
 });
