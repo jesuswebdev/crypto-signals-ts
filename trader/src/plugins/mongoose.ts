@@ -23,6 +23,7 @@ const mongoosePlugin = {
     createMarketModel(connection);
     createOrderModel(connection);
     createAccountModel(connection);
+    await connection.syncIndexes();
     server.expose('connection', connection);
   }
 };
