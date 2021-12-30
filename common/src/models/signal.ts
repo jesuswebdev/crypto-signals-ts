@@ -8,7 +8,7 @@ export const createSignalSchema = function createSignalSchema(
 ) {
   const schema = new Schema<SignalAttributes>(
     {
-      id: { type: String, required: true, unique: true },
+      id: { type: String, required: true },
       time: { type: Number, required: true, validate: numberSchemaValidation },
       trigger_time: {
         type: Number,
@@ -52,7 +52,7 @@ export const createSignalSchema = function createSignalSchema(
   schema.index({ 'close_candle.id': 1 });
   schema.index({ symbol: 1, status: 1, trigger_time: -1 });
   schema.index({ symbol: 1, status: 1, close_time: -1 });
-  schema.index({ id: 1 });
+  schema.index({ id: 1 }, { unique: true });
 
   return schema;
 };
