@@ -152,8 +152,9 @@ export class ListenMessage<T> {
     }
 
     if (!this.handled && requeue) {
-      this.handled = true;
       this.connection.publish(this._raw.subject, this.raw.data);
     }
+
+    this.handled = true;
   }
 }
