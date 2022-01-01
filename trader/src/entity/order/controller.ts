@@ -132,7 +132,7 @@ export const createBuyOrder = async function createBuyOrder(
 
   if (!market.use_main_account) {
     console.log(
-      `${position._id} | ${position.symbol} | Market disabled for trading.`
+      `${position.symbol} | ${position._id} | Market disabled for trading.`
     );
     msg.ack();
 
@@ -164,7 +164,7 @@ export const createBuyOrder = async function createBuyOrder(
 
     server.log(
       ['warn', 'create-buy-order'],
-      `${position._id} | Unable to continue. Reason: ${reason}`
+      `${position.symbol} | ${position._id} | Unable to continue. Reason: ${reason}`
     );
     msg.nack(false, requeue);
 
@@ -218,11 +218,19 @@ export const createBuyOrder = async function createBuyOrder(
       `/api/v3/order?${searchParams}`
     );
 
-    console.log('Order created: ', data);
-
     await checkHeaders(headers, accountModel);
 
     if (data?.orderId) {
+      const createdOrder = {
+        symbol: position.symbol,
+        orderId: data.orderId,
+        clientOrderId: data.clientOrderId
+      };
+
+      console.log(
+        `${position._id} | Order created: ${JSON.stringify(createdOrder)}`
+      );
+
       await positionModel
         .updateOne({ id: position.id }, { $set: { buy_order: data } })
         .hint('id_1');
@@ -364,9 +372,13 @@ export const createSellOrder = async function createSellOrder(
 
     if (quantity_to_sell === 0) {
       msg.nack(false, false);
-      throw new Error(
+
+      server.log(
+        ['warn', 'create-sell-order'],
         `Buy order for position '${position._id}' was not filled.`
       );
+
+      return;
     }
 
     query.quantity = toSymbolStepPrecision(
@@ -386,8 +398,14 @@ export const createSellOrder = async function createSellOrder(
     await checkHeaders(headers, accountModel);
 
     if (data?.orderId) {
+      const createdOrder = {
+        symbol: position.symbol,
+        orderId: data.orderId,
+        clientOrderId: data.clientOrderId
+      };
+
       console.log(
-        `${position._id} | Request completed. Order created: ${position.symbol}-${data.orderId}`
+        `${position._id} | Order created: ${JSON.stringify(createdOrder)}`
       );
 
       await positionModel
