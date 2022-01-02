@@ -1,5 +1,5 @@
 import mongoose, { SchemaOptions } from 'mongoose';
-import { PAIRS, numberSchemaValidation } from '../index';
+import { PAIRS, numberSchemaValidation, getTimeDiff } from '../index';
 import { CandleAttributes } from '../interfaces/candle';
 
 export const createCandleSchema = function createCandleSchema(
@@ -118,6 +118,10 @@ export const createCandleSchema = function createCandleSchema(
   schema.index({ symbol: 1, open_time: 1 });
   schema.index({ symbol: 1, interval: 1, open_time: 1 });
   schema.index({ symbol: 1, interval: 1, open_time: -1 });
+  schema.index(
+    { createdAt: 1 },
+    { expires: getTimeDiff(180, process.env.CANDLE_INTERVAL ?? '') / 1000 }
+  );
 
   return schema;
 };
