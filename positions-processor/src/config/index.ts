@@ -18,6 +18,10 @@ const env = validateObjectSchema(
     QUOTE_ASSET: joi
       .string()
       .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
+      .required(),
+    CANDLE_INTERVAL: joi
+      .string()
+      .pattern(new RegExp('^[\\d]{1,2}(d|h|m)$'))
       .required()
   })
 );

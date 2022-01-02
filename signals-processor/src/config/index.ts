@@ -29,6 +29,9 @@ const env = validateObjectSchema(
     POSITION_TAKE_PROFIT: Joi.number().integer().positive().required(),
     QUOTE_ASSET: Joi.string()
       .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
+      .required(),
+    CANDLE_INTERVAL: Joi.string()
+      .pattern(new RegExp('^[\\d]{1,2}(d|h|m)$'))
       .required()
   })
 );
