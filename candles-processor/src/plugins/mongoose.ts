@@ -20,6 +20,7 @@ const mongoosePlugin = {
     createCandleModel(connection);
     createMarketModel(connection);
     await connection.syncIndexes();
+    console.log('MongoDB connection established');
     server.expose('connection', connection);
   }
 };

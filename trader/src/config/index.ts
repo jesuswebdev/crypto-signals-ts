@@ -17,8 +17,11 @@ import {
 const env = validateObjectSchema(
   process.env,
   Joi.object({
-    MONGODB_SERVICE_HOST: Joi.string().hostname().required(),
-    MONGODB_SERVICE_PORT: Joi.number().port().default(27017),
+    MONGODB_PROTOCOL: Joi.string().valid('mongodb', 'mongodb+srv').required(),
+    MONGODB_SERVICE_HOST: Joi.string().trim().hostname().required(),
+    MONGODB_SERVICE_PORT: Joi.number().port(),
+    MONGODB_USER: Joi.string().trim(),
+    MONGODB_PASSWORD: Joi.string().trim(),
     MONGODB_DATABASE: Joi.string().required(),
     MESSAGE_BROKER_SERVICE_HOST: Joi.string().hostname().required(),
     MESSAGE_BROKER_SERVICE_PORT: Joi.number().port().default(4222),
@@ -38,7 +41,15 @@ const env = validateObjectSchema(
   })
 );
 
-export const MONGODB_URI = `mongodb://${env.MONGODB_SERVICE_HOST}:${env.MONGODB_SERVICE_PORT}/${env.MONGODB_DATABASE}`;
+const MONGODB_PROTOCOL = env.MONGODB_PROTOCOL ?? '';
+const MONGODB_USER = env.MONGODB_USER
+  ? `${env.MONGODB_USER}:${env.MONGODB_PASSWORD}@`
+  : '';
+const MONGODB_HOST = `${env.MONGODB_SERVICE_HOST}${
+  env.MONGODB_SERVICE_PORT ? `:${env.MONGODB_SERVICE_PORT}` : ''
+}`;
+
+export const MONGODB_URI = `${MONGODB_PROTOCOL}://${MONGODB_USER}${MONGODB_HOST}/${env.MONGODB_DATABASE}`;
 export const MESSAGE_BROKER_URI = `http://${env.MESSAGE_BROKER_SERVICE_HOST}:${env.MESSAGE_BROKER_SERVICE_PORT}`;
 export const QUOTE_ASSET = env.QUOTE_ASSET ?? '';
 export const BUY_ORDER_TYPE = env.BUY_ORDER_TYPE ?? '';

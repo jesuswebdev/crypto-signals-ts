@@ -20,6 +20,7 @@ const mongoosePlugin = {
     createCandleModel(connection);
     createPositionModel(connection);
     await connection.syncIndexes();
+    console.log('MongoDB connection established');
     server.expose('connection', connection);
   }
 };

@@ -24,6 +24,7 @@ const mongoosePlugin = {
     createOrderModel(connection);
     createAccountModel(connection);
     await connection.syncIndexes();
+    console.log('MongoDB connection established');
     server.expose('connection', connection);
   }
 };
