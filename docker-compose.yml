@@ -1,10 +1,5 @@
 version: "3"
 services:
-  mongodb:
-    restart: unless-stopped
-    image: mongo:latest
-    volumes:
-      - db_data:/data/db
   redis:
     restart: unless-stopped
     image: redis:latest
@@ -13,87 +8,44 @@ services:
     image: nats:latest
   observer:
     restart: unless-stopped
-    build:
-      context: ./observer/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-observer:latest
     env_file:
-      - ./observer/.env
-    environment:
-      - MESSAGE_BROKER_SERVICE_HOST=message-broker
-      - NODE_ENV=production
-    depends_on: 
+      - ./.env
+    depends_on:
       - message-broker
+
   candles-processor:
     restart: unless-stopped
-    build:
-      context: ./candles-processor/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-candles-processor:latest
     env_file:
-      - ./candles-processor/.env
-    environment:
-      - MESSAGE_BROKER_SERVICE_HOST=message-broker
-      - MONGODB_SERVICE_HOST=mongodb
-      - REDIS_SERVICE_HOST=redis
-      - NODE_ENV=production
-    depends_on: 
-      - mongodb
+      - ./.env
+    depends_on:
       - redis
       - message-broker
   positions-processor:
     restart: unless-stopped
-    build:
-      context: ./positions-processor/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-positions-processor:latest
     env_file:
-      - ./positions-processor/.env
-    environment:
-      - MESSAGE_BROKER_SERVICE_HOST=message-broker
-      - MONGODB_SERVICE_HOST=mongodb
-      - NODE_ENV=production
-    depends_on: 
-      - mongodb
+      - ./.env
+    depends_on:
       - message-broker
   signals-processor:
     restart: unless-stopped
-    build:
-      context: ./signals-processor/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-signals-processor:latest
     env_file:
-      - ./signals-processor/.env
-    environment:
-      - MESSAGE_BROKER_SERVICE_HOST=message-broker
-      - MONGODB_SERVICE_HOST=mongodb
-      - REDIS_SERVICE_HOST=redis
-      - NODE_ENV=production
-    depends_on: 
-      - mongodb
+      - ./.env
+    depends_on:
       - message-broker
       - redis
   trader:
     restart: unless-stopped
-    build:
-      context: ./trader/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-trader:latest
     env_file:
-      - ./trader/.env
-    environment:
-      - MESSAGE_BROKER_SERVICE_HOST=message-broker
-      - MONGODB_SERVICE_HOST=mongodb
-      - NODE_ENV=production
-    depends_on: 
-      - mongodb
+      - ./.env
+    depends_on:
       - message-broker
   account-observer:
     restart: unless-stopped
-    build:
-      context: ./account-observer/
-      dockerfile: ./Dockerfile
+    image: jesuswebdev/crypto-signals-account-observer:latest
     env_file:
-      - ./account-observer/.env
-    environment:
-      - MONGODB_SERVICE_HOST=mongodb
-      - NODE_ENV=production
-    depends_on: 
-      - mongodb
-volumes:
-  db_data:
+      - ./.env
