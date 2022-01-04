@@ -121,6 +121,7 @@ export const processSignals = async function processSignals(
         { trigger_time: { $gt: Date.now() - hoursLookup } }
       ]
     })
+    .select({ symbol: true, trailing_stop_buy: true })
     .hint('symbol_1_status_1_trigger_time_-1')
     .sort({ trigger_time: -1 })
     .lean();
@@ -134,6 +135,7 @@ export const processSignals = async function processSignals(
           { open_time: { $gt: Date.now() - positionHoursLookup } }
         ]
       })
+      .select({ buy_price: true, sell_price: true })
       .hint('symbol_1_status_1_open_time_-1')
       .sort({ open_time: -1 })
       .lean();
@@ -184,12 +186,12 @@ export const processSignals = async function processSignals(
 
         const market: LeanMarketDocument = await marketModel
           .findOne({ symbol: open_signal.symbol })
+          .select({ trader_lock: true, broadcast_signals: true })
           .hint('symbol_1')
           .lean();
 
         if (
           last_candle.close_price >= open_signal.trailing_stop_buy &&
-          !open_signal.trader_lock &&
           !market.trader_lock
         ) {
           const close_price = toSymbolPrecision(

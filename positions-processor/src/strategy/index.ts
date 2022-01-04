@@ -63,6 +63,12 @@ export const applyStrategy = async function applyStrategy(
     .find({
       $and: [{ symbol }, { status: POSITION_STATUS.OPEN }]
     })
+    .select({
+      stop_loss: true,
+      stop_loss_trigger_time: true,
+      take_profit: true,
+      buy_price: true
+    })
     .hint('symbol_1_status_1')
     .lean();
 

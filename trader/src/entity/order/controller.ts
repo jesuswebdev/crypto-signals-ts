@@ -127,6 +127,7 @@ export const createBuyOrder = async function createBuyOrder(
 
   const market: LeanMarketDocument = await marketModel
     .findOne({ symbol: position.symbol })
+    .select({ use_main_account: true, trader_lock: true })
     .hint('symbol_1')
     .lean();
 
@@ -294,6 +295,7 @@ export const createSellOrder = async function createSellOrder(
 
   const market: LeanMarketDocument = await marketModel
     .findOne({ symbol: position.symbol })
+    .select({ last_price: true, trader_lock: true })
     .hint('symbol_1')
     .lean();
 
@@ -444,6 +446,14 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
         },
         { time: { $gt: Date.now() - MILLISECONDS.HOUR } }
       ]
+    })
+    .select({
+      side: true,
+      type: true,
+      eventTime: true,
+      clientOrderId: true,
+      symbol: true,
+      orderId: true
     })
     .hint('status_1_time_1')
     .lean();
