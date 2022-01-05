@@ -130,6 +130,7 @@ export const processCandles = async function processCandles(
     return;
   }
 
+  const redis = server.plugins.redis.client;
   const candleModel: CandleModel = server.plugins.mongoose.connection.model(
     DATABASE_MODELS.CANDLE
   );
@@ -147,27 +148,81 @@ export const processCandles = async function processCandles(
     string | number | boolean | null | undefined
   >[] = [];
 
+  const ignoredFields = {
+    updatedAt: false,
+    createdAt: false,
+    __v: false,
+    quote_asset_volume: false,
+    _id: false,
+    open_time: false,
+    close_time: false,
+    date: false,
+    event_time: false
+  };
+
   for (const candle of toUpdate) {
-    // try find all and filter based on open_time
+    const redisKeys = getRedisKeys(candle);
+    const cachedCandlesValue = await redis.get(redisKeys.cachedCandles);
+
+    let cachedCandles: LeanCandleDocument[];
+
+    if (!cachedCandlesValue) {
+      cachedCandles = await candleModel
+        .find({
+          $and: [
+            { symbol },
+            {
+              open_time: {
+                $gte: candle.open_time - getTimeDiff(155, candle.interval)
+              }
+            },
+            {
+              open_time: {
+                $lte: candle.open_time - getTimeDiff(5, candle.interval)
+              }
+            }
+          ]
+        })
+        .select(ignoredFields)
+        .hint('symbol_1_open_time_1')
+        .sort({ open_time: 1 })
+        .lean();
+
+      const cacheExpiresAt = candle.open_time + getTimeDiff(2, candle.interval);
+
+      if (Date.now() < cacheExpiresAt) {
+        await redis.set(
+          redisKeys.cachedCandles,
+          JSON.stringify(cachedCandles),
+          { PXAT: cacheExpiresAt }
+        );
+      }
+    } else {
+      cachedCandles = JSON.parse(cachedCandlesValue);
+    }
+
     const candles: LeanCandleDocument[] = await candleModel
       .find({
         $and: [
           { symbol },
           {
             open_time: {
-              $gte: candle.open_time - getTimeDiff(155, candle.interval)
+              $gte: candle.open_time - getTimeDiff(4, candle.interval)
             }
           },
           { open_time: { $lte: candle.open_time } }
         ]
       })
+      .select(ignoredFields)
       .hint('symbol_1_open_time_1')
       .sort({ open_time: 1 })
       .lean();
 
-    if (candles.length >= 150) {
-      const ohlc = getOHLCValues(candles);
-      const indicators = await getIndicatorsValues(ohlc, candles);
+    const allCandles = cachedCandles.concat(candles);
+
+    if (allCandles.length >= 150) {
+      const ohlc = getOHLCValues(allCandles);
+      const indicators = await getIndicatorsValues(ohlc, allCandles);
       updates.push({ id: candle.id, ...indicators });
     }
   }
