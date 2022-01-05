@@ -48,6 +48,14 @@ class AccountObserver {
         .lean();
 
       await this.listenKeyKeepAlive(account.spot_account_listen_key);
+
+      await this.database
+        .model<AccountModel>(DATABASE_MODELS.ACCOUNT)
+        .updateOne(
+          { id: ENVIRONMENT },
+          { $set: { last_spot_account_listen_key_update: Date.now() } }
+        )
+        .hint('id_1');
     }, MILLISECONDS.MINUTE * 30);
   }
 
@@ -160,8 +168,8 @@ class AccountObserver {
               .updateOne(
                 {
                   $and: [
-                    { orderId: { $eq: parsedOrder.orderId } },
-                    { symbol: { $eq: parsedOrder.symbol } }
+                    { orderId: parsedOrder.orderId },
+                    { symbol: parsedOrder.symbol }
                   ]
                 },
                 { $set: parsedOrder },
@@ -175,8 +183,8 @@ class AccountObserver {
               .updateOne(
                 {
                   $and: [
-                    { orderId: { $eq: parsedOrder.orderId } },
-                    { symbol: { $eq: parsedOrder.symbol } }
+                    { orderId: parsedOrder.orderId },
+                    { symbol: parsedOrder.symbol }
                   ]
                 },
                 { $set: parsedOrder },
