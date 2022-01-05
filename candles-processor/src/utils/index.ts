@@ -129,7 +129,8 @@ export const getRedisKeys = function getRedisKeys(candle: CandleTickData) {
     lastProcessDate: `${candle.symbol}_last_candles_process_date`,
     candlesPersistLock: `${candle.symbol}_candles_persist_lock`,
     hasOpenSignal: `${candle.symbol}_has_open_signal`,
-    candles: `${candle.symbol}_candles`
+    candles: `${candle.symbol}_candles`,
+    cachedCandles: `${candle.symbol}_${candle.open_time}_cached_candles`
   };
 };
 
