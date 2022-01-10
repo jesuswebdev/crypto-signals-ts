@@ -16,7 +16,8 @@ import {
   nz,
   ListenMessage,
   POSITION_EVENTS,
-  MILLISECONDS
+  MILLISECONDS,
+  toSymbolPrecision
 } from '@jwd-crypto-signals/common';
 import {
   BUY_ORDER_TYPE,
@@ -25,7 +26,8 @@ import {
   SELL_ORDER_TTL,
   SELL_ORDER_TYPE,
   QUOTE_ASSET,
-  MINUTES_BETWEEN_CANCEL_ATTEMPTS
+  MINUTES_BETWEEN_CANCEL_ATTEMPTS,
+  BINANCE_MINIMUM_ORDER_SIZE
 } from '../../config';
 import { parseOrder } from '../../utils';
 
@@ -379,6 +381,22 @@ export const createSellOrder = async function createSellOrder(
       server.log(
         ['warn', 'create-sell-order'],
         `Buy order for position '${position._id}' was not filled.`
+      );
+
+      return;
+    }
+
+    const sellValue = toSymbolPrecision(
+      quantity_to_sell * market.last_price,
+      market.symbol
+    );
+
+    if (sellValue < BINANCE_MINIMUM_ORDER_SIZE) {
+      msg.nack(false, false);
+
+      server.log(
+        ['warn', 'create-sell-order'],
+        `Sell value (${sellValue} ${QUOTE_ASSET}) is below the minimum order size (${BINANCE_MINIMUM_ORDER_SIZE} ${QUOTE_ASSET}).`
       );
 
       return;
