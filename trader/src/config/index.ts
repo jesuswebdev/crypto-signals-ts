@@ -37,7 +37,12 @@ const env = validateObjectSchema(
     SELL_ORDER_TTL: Joi.number().integer().positive().greater(0).default(600),
     QUOTE_ASSET: Joi.string()
       .valid(QUOTE_ASSETS.BTC, QUOTE_ASSETS.BUSD)
-      .required()
+      .required(),
+    MINUTES_BETWEEN_CANCEL_ATTEMPTS: Joi.number()
+      .integer()
+      .positive()
+      .greater(0)
+      .default(15)
   })
 );
 
@@ -63,3 +68,5 @@ export const BINANCE_MINIMUM_ORDER_SIZE = +(
 );
 export const BUY_ORDER_TTL = +(env.BUY_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
 export const SELL_ORDER_TTL = +(env.SELL_ORDER_TTL ?? 0) * MILLISECONDS.SECOND;
+export const MINUTES_BETWEEN_CANCEL_ATTEMPTS =
+  +(env.MINUTES_BETWEEN_CANCEL_ATTEMPTS ?? 0) * MILLISECONDS.MINUTE;

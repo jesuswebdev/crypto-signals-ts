@@ -24,7 +24,8 @@ import {
   BUY_ORDER_TTL,
   SELL_ORDER_TTL,
   SELL_ORDER_TYPE,
-  QUOTE_ASSET
+  QUOTE_ASSET,
+  MINUTES_BETWEEN_CANCEL_ATTEMPTS
 } from '../../config';
 import { parseOrder } from '../../utils';
 
@@ -459,6 +460,9 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
     .lean();
 
   const filteredOrders = orders.filter(order => {
+    const canAttemptToCancelOrder =
+      (order.lastCancelAttempt ?? 0) + MINUTES_BETWEEN_CANCEL_ATTEMPTS <
+      Date.now();
     const shouldCancelBuyOrder =
       order.side === 'BUY' &&
       order.type === BINANCE_ORDER_TYPES.LIMIT &&
@@ -468,7 +472,9 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
       order.type === BINANCE_ORDER_TYPES.LIMIT &&
       Date.now() > order.eventTime + SELL_ORDER_TTL;
 
-    return shouldCancelBuyOrder || shouldCancelSellOrder;
+    return (
+      (shouldCancelBuyOrder || shouldCancelSellOrder) && canAttemptToCancelOrder
+    );
   });
 
   if (filteredOrders.length > 0) {
@@ -480,6 +486,13 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
         }).toString();
 
         try {
+          await orderModel
+            .updateOne(
+              { $and: [{ orderId: order.orderId }, { symbol: order.symbol }] },
+              { $set: { lastCancelAttempt: Date.now() } }
+            )
+            .hint('orderId_-1_symbol_-1');
+
           await server.plugins.binance.client.delete(
             `/api/v3/order?${tradeQuery}`
           );
