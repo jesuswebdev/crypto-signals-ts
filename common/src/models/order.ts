@@ -25,7 +25,8 @@ export const createOrderSchema = function createOrderSchema(
       time: { type: Number },
       origQuoteOrderQty: { type: String },
       eventTime: { type: Number },
-      transactTime: { type: Number }
+      transactTime: { type: Number },
+      lastCancelAttempt: { type: Number }
     },
     { timestamps: true, ...options }
   );

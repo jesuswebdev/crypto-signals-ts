@@ -21,6 +21,7 @@ export interface OrderAttributes {
   origQuoteOrderQty: string;
   eventTime: number;
   transactTime: number;
+  lastCancelAttempt: number;
 }
 
 export interface OrderDocument extends Document, OrderAttributes {
