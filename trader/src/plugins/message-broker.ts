@@ -50,7 +50,6 @@ const messageBrokerPlugin = {
 
       const errorHandler = (error: unknown) => {
         server.log(['error', 'message-broker'], error as object);
-        throw error;
       };
 
       positionsBroker
