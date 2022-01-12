@@ -472,7 +472,8 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
       eventTime: true,
       clientOrderId: true,
       symbol: true,
-      orderId: true
+      orderId: true,
+      lastCancelAttempt: true
     })
     .hint('status_1_time_1')
     .lean();
