@@ -253,8 +253,7 @@ export const createBuyOrder = async function createBuyOrder(
 
 export const createSellOrder = async function createSellOrder(
   server: Server,
-  msg: ListenMessage<LeanPositionDocument>,
-  orderType?: BINANCE_ORDER_TYPES
+  msg: ListenMessage<LeanPositionDocument>
 ) {
   const position = msg.data;
 
@@ -271,9 +270,6 @@ export const createSellOrder = async function createSellOrder(
   );
   const marketModel: MarketModel = server.plugins.mongoose.connection.model(
     DATABASE_MODELS.MARKET
-  );
-  const orderModel: OrderModel = server.plugins.mongoose.connection.model(
-    DATABASE_MODELS.ORDER
   );
 
   const account: LeanAccountDocument = await accountModel
@@ -324,7 +320,7 @@ export const createSellOrder = async function createSellOrder(
 
   try {
     const query: Record<string, string> = {
-      type: orderType ?? SELL_ORDER_TYPE,
+      type: SELL_ORDER_TYPE,
       symbol: position.symbol,
       side: 'SELL'
     };
@@ -348,24 +344,6 @@ export const createSellOrder = async function createSellOrder(
       buy_order.status !== BINANCE_ORDER_STATUS.CANCELED &&
       buy_order.status !== BINANCE_ORDER_STATUS.FILLED
     ) {
-      if (
-        (buy_order.lastCancelAttempt ?? 0) + MINUTES_BETWEEN_CANCEL_ATTEMPTS >
-        Date.now()
-      ) {
-        msg.ack();
-
-        return;
-      }
-
-      await orderModel
-        .updateOne(
-          {
-            $and: [{ orderId: buy_order.orderId }, { symbol: buy_order.symbol }]
-          },
-          { $set: { lastCancelAttempt: Date.now() } }
-        )
-        .hint('orderId_-1_symbol_-1');
-
       console.log(
         `${position._id} | Order (${buy_order.symbol}-${buy_order.orderId}) has not been filled. Cancelling...`
       );
@@ -466,6 +444,241 @@ export const createSellOrder = async function createSellOrder(
       .hint('symbol_1');
   }
 };
+
+export const createSellOrderForCanceledOrder =
+  async function createSellOrderForCanceledOrder(
+    server: Server,
+    msg: ListenMessage<LeanPositionDocument>
+  ) {
+    const position = msg.data;
+
+    if (!position) {
+      msg.nack(false, false);
+      throw new Error('Position is not defined');
+    }
+
+    const accountModel: AccountModel = server.plugins.mongoose.connection.model(
+      DATABASE_MODELS.ACCOUNT
+    );
+    const positionModel: PositionModel =
+      server.plugins.mongoose.connection.model(DATABASE_MODELS.POSITION);
+    const marketModel: MarketModel = server.plugins.mongoose.connection.model(
+      DATABASE_MODELS.MARKET
+    );
+    const orderModel: OrderModel = server.plugins.mongoose.connection.model(
+      DATABASE_MODELS.ORDER
+    );
+
+    const account: LeanAccountDocument = await accountModel
+      .findOne({ id: process.env.NODE_ENV })
+      .hint('id_1')
+      .lean();
+
+    const hasSellOrder = !!position.sell_order;
+
+    if (Date.now() < account?.create_order_after) {
+      server.log(
+        ['warn', 'create-sell-order'],
+        `${position.id} | Unable to continue. Reason: 10s order limit reached.`
+      );
+      msg.nack();
+
+      return;
+    }
+
+    if (!hasSellOrder) {
+      msg.nack(false, false);
+
+      return;
+    }
+
+    const market: LeanMarketDocument = await marketModel
+      .findOne({ symbol: position.symbol })
+      .select({ last_price: true, trader_lock: true })
+      .hint('symbol_1')
+      .lean();
+
+    if (market.trader_lock) {
+      server.log(
+        ['warn', 'create-sell-order'],
+        `${position.symbol} | ${position._id} | Market lock is set. Unable to continue.`
+      );
+      msg.nack();
+
+      return;
+    }
+
+    await marketModel
+      .updateOne(
+        { symbol: position.symbol },
+        { $set: { trader_lock: true, last_trader_lock_update: Date.now() } }
+      )
+      .hint('symbol_1');
+
+    try {
+      const query: Record<string, string> = {
+        type: BINANCE_ORDER_TYPES.MARKET,
+        symbol: position.symbol,
+        side: 'SELL'
+      };
+
+      let sell_order = await getOrderFromDbOrBinance(
+        server,
+        position.sell_order as OrderAttributes
+      );
+
+      if (!sell_order) {
+        msg.nack(false, false);
+        throw new Error('Position does not have a sell order');
+      }
+
+      if (
+        sell_order.status !== BINANCE_ORDER_STATUS.CANCELED &&
+        sell_order.status !== BINANCE_ORDER_STATUS.FILLED
+      ) {
+        if (
+          (sell_order.lastCancelAttempt ?? 0) +
+            MINUTES_BETWEEN_CANCEL_ATTEMPTS >
+          Date.now()
+        ) {
+          msg.ack();
+
+          return;
+        }
+
+        await orderModel
+          .updateOne(
+            {
+              $and: [
+                { orderId: sell_order.orderId },
+                { symbol: sell_order.symbol }
+              ]
+            },
+            { $set: { lastCancelAttempt: Date.now() } }
+          )
+          .hint('orderId_-1_symbol_-1');
+
+        console.log(
+          `${position._id} | Order (${sell_order.symbol}-${sell_order.orderId}) has not been filled. Cancelling...`
+        );
+
+        //cancel order and refetch from db
+        const cancel_query = new URLSearchParams({
+          symbol: sell_order.symbol,
+          orderId: sell_order.orderId.toString()
+        }).toString();
+
+        await server.plugins.binance.client.delete(
+          `/api/v3/order?${cancel_query}`
+        );
+
+        sell_order = await getOrderFromDbOrBinance(
+          server,
+          position.sell_order as OrderAttributes
+        );
+      }
+
+      if (!sell_order) {
+        msg.nack(false, false);
+        throw new Error('Sell order does not exist');
+      }
+
+      const buy_order = await getOrderFromDbOrBinance(
+        server,
+        position.buy_order as OrderAttributes
+      );
+
+      if (!buy_order) {
+        msg.nack(false, false);
+        throw new Error('Buy order does not exist');
+      }
+
+      const amountFromBuyOrder =
+        nz(+buy_order.executedQty) -
+        (position.symbol.replace(QUOTE_ASSET, '') === buy_order.commissionAsset
+          ? nz(+buy_order.commissionAmount)
+          : 0);
+
+      const amountFromSellOrder =
+        nz(+sell_order.executedQty) -
+        (position.symbol.replace(QUOTE_ASSET, '') === sell_order.commissionAsset
+          ? nz(+sell_order.commissionAmount)
+          : 0);
+
+      const quantity_to_sell = amountFromBuyOrder - amountFromSellOrder;
+
+      if (quantity_to_sell === 0) {
+        msg.nack(false, false);
+
+        server.log(
+          ['warn', 'create-sell-order'],
+          `Sell order for position '${position._id}' was already filled. Nothing to sell.`
+        );
+
+        return;
+      }
+
+      const sellValue = toSymbolPrecision(
+        quantity_to_sell * market.last_price,
+        market.symbol
+      );
+
+      if (sellValue < BINANCE_MINIMUM_ORDER_SIZE) {
+        msg.nack(false, false);
+
+        server.log(
+          ['warn', 'create-sell-order'],
+          `Sell value (${sellValue} ${QUOTE_ASSET}) is below the minimum order size (${BINANCE_MINIMUM_ORDER_SIZE} ${QUOTE_ASSET}).`
+        );
+
+        return;
+      }
+
+      query.quantity = toSymbolStepPrecision(
+        quantity_to_sell,
+        position.symbol
+      ).toString();
+
+      console.log(
+        `${position._id} | Attempting to create order: ${JSON.stringify(query)}`
+      );
+
+      const searchParams = new URLSearchParams(query).toString();
+      const { data, headers } = await server.plugins.binance.client.post(
+        `/api/v3/order?${searchParams}`
+      );
+
+      await checkHeaders(headers, accountModel);
+
+      if (data?.orderId) {
+        const createdOrder = {
+          symbol: position.symbol,
+          orderId: data.orderId,
+          clientOrderId: data.clientOrderId
+        };
+
+        console.log(
+          `${position._id} | Order created: ${JSON.stringify(createdOrder)}`
+        );
+
+        await positionModel
+          .updateOne({ id: position.id }, { $set: { sell_order: data } })
+          .hint('id_1');
+      }
+
+      msg.ack();
+    } catch (error: unknown) {
+      msg.nack();
+      server.log(['error'], error as object);
+    } finally {
+      await marketModel
+        .updateOne(
+          { symbol: position.symbol },
+          { $set: { trader_lock: false } }
+        )
+        .hint('symbol_1');
+    }
+  };
 
 export const cancelUnfilledOrders = async function cancelUnfilledOrders(
   server: Server

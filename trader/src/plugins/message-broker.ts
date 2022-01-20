@@ -4,10 +4,13 @@ import {
   EXCHANGE_TYPES,
   POSITION_EVENTS,
   LeanPositionDocument,
-  ListenMessage,
-  BINANCE_ORDER_TYPES
+  ListenMessage
 } from '@jwd-crypto-signals/common';
-import { createBuyOrder, createSellOrder } from '../entity/order/controller';
+import {
+  createBuyOrder,
+  createSellOrder,
+  createSellOrderForCanceledOrder
+} from '../entity/order/controller';
 
 interface PluginOptions {
   uri: string;
@@ -36,16 +39,15 @@ const messageBrokerPlugin = {
       const handlePositionClosed = async (
         msg: ListenMessage<LeanPositionDocument>
       ) => {
-        let orderType: BINANCE_ORDER_TYPES | undefined;
         const requeued =
           msg.getRoutingKey() ===
           `${EXCHANGE_TYPES.POSITION_EVENTS}_${POSITION_EVENTS.POSITION_CLOSED_REQUEUE}`;
 
         if (requeued) {
-          orderType = BINANCE_ORDER_TYPES.MARKET;
+          await createSellOrderForCanceledOrder(server, msg);
+        } else {
+          await createSellOrder(server, msg);
         }
-
-        await createSellOrder(server, msg, orderType);
       };
 
       const errorHandler = (error: unknown) => {
