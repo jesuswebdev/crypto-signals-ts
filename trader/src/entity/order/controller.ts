@@ -272,6 +272,9 @@ export const createSellOrder = async function createSellOrder(
   const marketModel: MarketModel = server.plugins.mongoose.connection.model(
     DATABASE_MODELS.MARKET
   );
+  const orderModel: OrderModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.ORDER
+  );
 
   const account: LeanAccountDocument = await accountModel
     .findOne({ id: process.env.NODE_ENV })
@@ -345,9 +348,28 @@ export const createSellOrder = async function createSellOrder(
       buy_order.status !== BINANCE_ORDER_STATUS.CANCELED &&
       buy_order.status !== BINANCE_ORDER_STATUS.FILLED
     ) {
+      if (
+        (buy_order.lastCancelAttempt ?? 0) + MINUTES_BETWEEN_CANCEL_ATTEMPTS >
+        Date.now()
+      ) {
+        msg.ack();
+
+        return;
+      }
+
+      await orderModel
+        .updateOne(
+          {
+            $and: [{ orderId: buy_order.orderId }, { symbol: buy_order.symbol }]
+          },
+          { $set: { lastCancelAttempt: Date.now() } }
+        )
+        .hint('orderId_-1_symbol_-1');
+
       console.log(
         `${position._id} | Order (${buy_order.symbol}-${buy_order.orderId}) has not been filled. Cancelling...`
       );
+
       //cancel order and refetch from db
       const cancel_query = new URLSearchParams({
         symbol: buy_order.symbol,
