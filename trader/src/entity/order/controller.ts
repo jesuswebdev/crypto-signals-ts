@@ -49,6 +49,42 @@ export const checkHeaders = async function checkHeaders(
   return;
 };
 
+export const getOrderFromBinance = async function getOrderFromBinance(
+  server: Server,
+  order: OrderAttributes
+): Promise<OrderAttributes | undefined> {
+  if (!order) {
+    throw new Error('Order is not defined.');
+  }
+
+  const orderModel: OrderModel = server.plugins.mongoose.connection.model(
+    DATABASE_MODELS.ORDER
+  );
+
+  const query = new URLSearchParams({
+    orderId: order.orderId.toString(),
+    symbol: order.symbol
+  }).toString();
+
+  const { data } = await server.plugins.binance.client.get(
+    `/api/v3/order?${query}`
+  );
+
+  if (!data) {
+    return;
+  }
+
+  const updatedOrder = await orderModel
+    .findOneAndUpdate(
+      { $and: [{ symbol: order.symbol }, { orderId: data.orderId }] },
+      { $set: parseOrder(data) },
+      { upsert: true, new: true }
+    )
+    .lean();
+
+  return updatedOrder;
+};
+
 export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
   server: Server,
   buy_order: OrderAttributes
