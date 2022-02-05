@@ -88,7 +88,7 @@ export const getOrderFromBinance = async function getOrderFromBinance(
 export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
   server: Server,
   buy_order: OrderAttributes
-) {
+): Promise<OrderAttributes | undefined> {
   if (!buy_order) {
     throw new Error('Order is not defined.');
   }
@@ -96,44 +96,32 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
   const orderModel: OrderModel = server.plugins.mongoose.connection.model(
     DATABASE_MODELS.ORDER
   );
-  let order = await orderModel
+  const order = await orderModel
     .findOne({ clientOrderId: buy_order.clientOrderId })
     .hint('clientOrderId_1')
     .lean();
 
-  if (!order) {
-    console.log(
-      'Order does not exist in database... Attempting to fetch from Binance...'
-    );
-
-    const query = new URLSearchParams({
-      orderId: buy_order.orderId.toString(),
-      symbol: buy_order.symbol
-    }).toString();
-
-    try {
-      const { data } = await server.plugins.binance.client.get(
-        `/api/v3/order?${query}`
-      );
-
-      if (!data?.orderId) {
-        console.log('Order does not exist in Binance.');
-      } else {
-        order = data;
-        await orderModel
-          .updateOne(
-            { $and: [{ symbol: buy_order.symbol }, { orderId: data.orderId }] },
-            { $set: parseOrder(data) },
-            { upsert: true }
-          )
-          .hint('orderId_-1_symbol_-1');
-      }
-    } catch (error: unknown) {
-      server.log(['error'], error as object);
-    }
+  if (order) {
+    return order;
   }
 
-  return order;
+  console.log(
+    'Order does not exist in database... Attempting to fetch from Binance...'
+  );
+
+  try {
+    const orderFromBinance = await getOrderFromBinance(server, buy_order);
+
+    if (!orderFromBinance?.orderId) {
+      console.log('Order does not exist in Binance.');
+
+      return;
+    }
+
+    return orderFromBinance;
+  } catch (error: unknown) {
+    server.log(['error'], error as object);
+  }
 };
 
 export const createBuyOrder = async function createBuyOrder(
@@ -390,14 +378,25 @@ export const createSellOrder = async function createSellOrder(
         orderId: buy_order.orderId.toString()
       }).toString();
 
-      await server.plugins.binance.client.delete(
-        `/api/v3/order?${cancel_query}`
-      );
+      try {
+        await server.plugins.binance.client.delete(
+          `/api/v3/order?${cancel_query}`
+        );
 
-      buy_order = await getOrderFromDbOrBinance(
-        server,
-        position.buy_order as OrderAttributes
-      );
+        buy_order = await getOrderFromDbOrBinance(
+          server,
+          position.buy_order as OrderAttributes
+        );
+      } catch (error) {
+        server.log(
+          ['error', 'create-sell-order'],
+          `Error while trying to cancel sell order for position '${position._id}'`
+        );
+        buy_order = await getOrderFromBinance(
+          server,
+          position.buy_order as OrderAttributes
+        );
+      }
     }
 
     if (!buy_order) {
@@ -604,14 +603,25 @@ export const createSellOrderForCanceledOrder =
           orderId: sell_order.orderId.toString()
         }).toString();
 
-        await server.plugins.binance.client.delete(
-          `/api/v3/order?${cancel_query}`
-        );
+        try {
+          await server.plugins.binance.client.delete(
+            `/api/v3/order?${cancel_query}`
+          );
 
-        sell_order = await getOrderFromDbOrBinance(
-          server,
-          position.sell_order as OrderAttributes
-        );
+          sell_order = await getOrderFromDbOrBinance(
+            server,
+            position.sell_order as OrderAttributes
+          );
+        } catch (error) {
+          server.log(
+            ['error', 'create-sell-order-for-canceled order'],
+            `Error while trying to cancel sell order for position '${position._id}'`
+          );
+          sell_order = await getOrderFromBinance(
+            server,
+            position.sell_order as OrderAttributes
+          );
+        }
       }
 
       if (!sell_order) {
