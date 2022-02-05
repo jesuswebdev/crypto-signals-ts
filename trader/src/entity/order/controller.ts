@@ -106,7 +106,7 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
   }
 
   console.log(
-    'Order does not exist in database... Attempting to fetch from Binance...'
+    `${buy_order.symbol}-${buy_order.orderId}| Order does not exist in database. Attempting to fetch from Binance.`
   );
 
   try {
