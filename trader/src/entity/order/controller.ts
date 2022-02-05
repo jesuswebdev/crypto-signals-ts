@@ -785,19 +785,19 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
           orderId: order.orderId.toString()
         }).toString();
 
-        try {
-          await orderModel
-            .updateOne(
-              { $and: [{ orderId: order.orderId }, { symbol: order.symbol }] },
-              { $set: { lastCancelAttempt: Date.now() } }
-            )
-            .hint('orderId_-1_symbol_-1');
+        await orderModel
+          .updateOne(
+            { $and: [{ orderId: order.orderId }, { symbol: order.symbol }] },
+            { $set: { lastCancelAttempt: Date.now() } }
+          )
+          .hint('orderId_-1_symbol_-1');
 
+        try {
           await server.plugins.binance.client.delete(
             `/api/v3/order?${tradeQuery}`
           );
         } catch (error: unknown) {
-          server.log(['error'], error as object);
+          await getOrderFromBinance(server, order);
           continue;
         }
 
