@@ -20,7 +20,6 @@ export const PAIRS = [
   { symbol: 'XTZBUSD', priceTickSize: 0.001, stepSize: 0.1 },
   { symbol: 'BATBUSD', priceTickSize: 0.0001, stepSize: 1 },
   { symbol: 'ENJBUSD', priceTickSize: 0.001, stepSize: 0.1 },
-  { symbol: 'NANOBUSD', priceTickSize: 0.001, stepSize: 0.1 },
   { symbol: 'ONTBUSD', priceTickSize: 0.0001, stepSize: 1 },
   { symbol: 'RVNBUSD', priceTickSize: 0.00001, stepSize: 0.1 },
   { symbol: 'ALGOBUSD', priceTickSize: 0.0001, stepSize: 1 },
@@ -115,5 +114,12 @@ export const PAIRS = [
   { symbol: 'CELOBUSD', priceTickSize: 0.001, stepSize: 0.1 },
   { symbol: 'HIVEBUSD', priceTickSize: 0.0001, stepSize: 1 },
   { symbol: 'ANKRBUSD', priceTickSize: 0.00001, stepSize: 0.1 },
-  { symbol: 'AMPBUSD', priceTickSize: 0.00001, stepSize: 1 }
+  { symbol: 'AMPBUSD', priceTickSize: 0.00001, stepSize: 1 },
+  { symbol: 'STORJBUSD', priceTickSize: 0.0001, stepSize: 1 },
+  { symbol: 'DOGEBUSD', priceTickSize: 0.0001, stepSize: 1 },
+  { symbol: 'XNOBUSD', priceTickSize: 0.001, stepSize: 0.01 },
+  { symbol: 'GALABUSD', priceTickSize: 0.00001, stepSize: 1 },
+  { symbol: 'UMABUSD', priceTickSize: 0.001, stepSize: 0.1 },
+  { symbol: 'TRXBUSD', priceTickSize: 0.00001, stepSize: 0.1 },
+  { symbol: 'ETCBUSD', priceTickSize: 0.01, stepSize: 0.01 }
 ];
