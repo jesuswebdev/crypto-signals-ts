@@ -27,14 +27,19 @@ const observerPlugin = {
 };
 
 class AccountObserver {
-  private readonly allowed_pairs: string[];
+  private readonly allowed_pairs: Map<string, boolean>;
   private listenKeyKeepAliveInterval: NodeJS.Timer | null;
   private client: ws.WebSocket | undefined;
   constructor(
     private readonly database: Connection,
     private readonly binance: AxiosInstance
   ) {
-    this.allowed_pairs = PAIRS.map(p => p.symbol);
+    this.allowed_pairs = new Map();
+
+    for (const pair of PAIRS) {
+      this.allowed_pairs.set(pair.symbol, true);
+    }
+
     this.listenKeyKeepAliveInterval = null;
   }
 
@@ -157,9 +162,7 @@ class AccountObserver {
 
       if (message.e === 'executionReport') {
         const parsedOrder = parseOrder(message);
-        const validPair = this.allowed_pairs.some(
-          v => v === parsedOrder.symbol
-        );
+        const validPair = this.allowed_pairs.get(parsedOrder.symbol ?? '');
 
         if (parsedOrder.orderId && validPair) {
           try {
