@@ -807,10 +807,12 @@ export const cancelUnfilledOrders = async function cancelUnfilledOrders(
             .hint('sell_order.orderId_1')
             .lean();
 
-          server.plugins.broker.publish(
-            POSITION_EVENTS.POSITION_CLOSED_REQUEUE,
-            position
-          );
+          if (position) {
+            server.plugins.broker.publish(
+              POSITION_EVENTS.POSITION_CLOSED_REQUEUE,
+              position
+            );
+          }
         }
       }
     }
