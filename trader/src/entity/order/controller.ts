@@ -425,7 +425,7 @@ export const createSellOrder = async function createSellOrder(
 
     const sellValue = toSymbolPrecision(
       quantity_to_sell * market.last_price,
-      market.symbol
+      position.symbol
     );
 
     if (sellValue < BINANCE_MINIMUM_ORDER_SIZE) {
@@ -663,7 +663,7 @@ export const createSellOrderForCanceledOrder =
 
       const sellValue = toSymbolPrecision(
         quantity_to_sell * market.last_price,
-        market.symbol
+        position.symbol
       );
 
       if (sellValue < BINANCE_MINIMUM_ORDER_SIZE) {
