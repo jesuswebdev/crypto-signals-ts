@@ -97,8 +97,10 @@ export const getOrderFromDbOrBinance = async function getOrderFromDbOrBinance(
     DATABASE_MODELS.ORDER
   );
   const order = await orderModel
-    .findOne({ clientOrderId: buy_order.clientOrderId })
-    .hint('clientOrderId_1')
+    .findOne({
+      $and: [{ orderId: buy_order.orderId }, { symbol: buy_order.symbol }]
+    })
+    .hint('orderId_-1_symbol_-1')
     .lean();
 
   if (order) {
