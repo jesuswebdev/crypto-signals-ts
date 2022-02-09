@@ -639,19 +639,14 @@ export const createSellOrderForCanceledOrder =
         throw new Error('Buy order does not exist');
       }
 
-      const amountFromBuyOrder =
-        nz(+buy_order.executedQty) -
-        (position.symbol.replace(QUOTE_ASSET, '') === buy_order.commissionAsset
-          ? nz(+buy_order.commissionAmount)
-          : 0);
-
-      const amountFromSellOrder =
+      const quantity_to_sell =
+        // the purchased quantity
+        nz(+sell_order.origQty) -
+        // minus the quantity that could have been sold in the limit order
         nz(+sell_order.executedQty) -
         (position.symbol.replace(QUOTE_ASSET, '') === sell_order.commissionAsset
           ? nz(+sell_order.commissionAmount)
           : 0);
-
-      const quantity_to_sell = amountFromBuyOrder - amountFromSellOrder;
 
       if (quantity_to_sell === 0) {
         msg.nack(false, false);
